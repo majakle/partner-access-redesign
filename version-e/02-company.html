@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Partner access — Company details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;650;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../mockups.css" />
+  </head>
+  <body data-flow-step="company">
+        <nav class="primary-nav primary-nav--anon" aria-label="Primary">
+      <a href="index.html" class="logo-text">LOGO</a>
+      <div class="nav-end">
+        <div class="lang-switcher" aria-label="Language">
+          <a href="#" class="lang-link">NL</a>
+          <span class="lang-divider">/</span>
+          <a href="#" class="lang-link lang-link--active">EN</a>
+          <span class="lang-divider">/</span>
+          <a href="#" class="lang-link">DE</a>
+        </div>
+        <a class="nav-cta" href="#">Sign in</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <div class="progress-pct" aria-label="Progress 50 percent">
+        <div class="progress-pct-meta">
+          <span>Step 2 of 4 — Company details</span>
+          <span>50%</span>
+        </div>
+        <div class="progress-pct-track">
+          <div class="progress-pct-fill" style="width: 50%"></div>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h1>Company details</h1>
+        <p class="lede">
+          Find your company by name or VAT ID.
+        </p>
+        <p class="hint section-req-note">
+          Required fields are marked with <span class="req">*</span>
+        </p>
+
+        <form action="03-context.html" method="get" autocomplete="on">
+          <div class="company-finder">
+            <div class="company-search-row">
+              <div class="field">
+                <label class="label-with-tip" for="company-query">
+                  Company name or VAT ID
+                  <button
+                    class="info-tip"
+                    type="button"
+                    aria-label="Why we ask for VAT"
+                    onclick="event.preventDefault()"
+                  >
+                    i
+                    <span
+                      >We use your VAT ID to verify your professional status and
+                      grant access to wholesale pricing.</span
+                    >
+                  </button>
+                </label>
+                <input
+                  id="company-query"
+                  type="search"
+                  placeholder="e.g. Company XY or NL123456789B01"
+                />
+              </div>
+              <div class="company-search-actions">
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  id="company-search-btn"
+                >
+                  Find company
+                </button>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  id="manual-entry-btn"
+                >
+                  Enter details manually
+                </button>
+              </div>
+            </div>
+            <p id="vat-status" class="company-status" hidden></p>
+            <ul id="company-results" class="company-results" hidden></ul>
+            <div id="company-confirm" class="company-confirm" hidden>
+              <h3>Check that these details are correct:</h3>
+              <div
+                id="company-confirm-summary"
+                class="company-confirm-summary"
+              ></div>
+              <div class="actions">
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  id="use-company-btn"
+                >
+                  Use these details
+                </button>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  id="search-again-btn"
+                >
+                  Search again
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="autofill-card" class="autofill-card" hidden>
+            <h3>Company &amp; address</h3>
+            <div class="row-2">
+              <div class="field">
+                <label for="company"
+                  >Company name <span class="req" aria-hidden="true">*</span></label
+                >
+                <input
+                  id="company"
+                  name="company"
+                  autocomplete="organization"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              <div class="field">
+                <label for="vat"
+                  >VAT ID <span class="req" aria-hidden="true">*</span></label
+                >
+                <input
+                  id="vat"
+                  name="vat"
+                  autocomplete="off"
+                  required
+                  aria-required="true"
+                />
+                <p id="vat-error" class="field-error" hidden>
+                  Please check your VAT ID (e.g. NL123456789B01).
+                </p>
+              </div>
+            </div>
+
+            <div class="address-lookup-block">
+              <div class="address-lookup-row">
+                <div class="field">
+                  <label for="postal"
+                    >Postal code
+                    <span class="req" aria-hidden="true">*</span></label
+                  >
+                  <input
+                    id="postal"
+                    name="postal"
+                    autocomplete="postal-code"
+                    required
+                    aria-required="true"
+                  />
+                </div>
+                <div class="field">
+                  <label for="house"
+                    >House number
+                    <span class="optional-tag">Optional</span></label
+                  >
+                  <input id="house" name="house" autocomplete="address-line2" />
+                </div>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  id="address-lookup-btn"
+                >
+                  Look up address
+                </button>
+              </div>
+              <p id="address-status" class="address-status" hidden></p>
+            </div>
+
+            <div class="field">
+              <label for="street"
+                >Street <span class="req" aria-hidden="true">*</span></label
+              >
+              <input
+                id="street"
+                name="street"
+                autocomplete="address-line1"
+                required
+                aria-required="true"
+              />
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label for="city"
+                  >City <span class="req" aria-hidden="true">*</span></label
+                >
+                <input
+                  id="city"
+                  name="city"
+                  autocomplete="address-level2"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              <div class="field">
+                <label for="country"
+                  >Country <span class="req" aria-hidden="true">*</span></label
+                >
+                <select
+                  id="country"
+                  name="country"
+                  autocomplete="country"
+                  required
+                  aria-required="true"
+                >
+                <optgroup label="Benelux">
+                  <option value="NL" selected>Netherlands</option>
+                  <option value="BE">Belgium</option>
+                  <option value="LU">Luxembourg</option>
+                </optgroup>
+                <optgroup label="Other EU / EEA">
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="AT">Austria</option>
+                  <option value="IT">Italy</option>
+                  <option value="ES">Spain</option>
+                  <option value="PT">Portugal</option>
+                  <option value="IE">Ireland</option>
+                  <option value="DK">Denmark</option>
+                  <option value="SE">Sweden</option>
+                  <option value="FI">Finland</option>
+                  <option value="PL">Poland</option>
+                  <option value="CZ">Czechia</option>
+                  <option value="SK">Slovakia</option>
+                  <option value="SI">Slovenia</option>
+                  <option value="HR">Croatia</option>
+                  <option value="HU">Hungary</option>
+                  <option value="RO">Romania</option>
+                  <option value="BG">Bulgaria</option>
+                  <option value="GR">Greece</option>
+                  <option value="EE">Estonia</option>
+                  <option value="LV">Latvia</option>
+                  <option value="LT">Lithuania</option>
+                  <option value="MT">Malta</option>
+                  <option value="CY">Cyprus</option>
+                </optgroup>
+              </select>
+            </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a class="btn btn-secondary" href="01-contact.html">Back</a>
+            <a
+              class="btn btn-primary is-disabled can-nudge"
+              id="continue-btn"
+              href="03-context.html"
+              aria-disabled="true"
+              >Continue</a
+            >
+            <p id="form-gate-hint" class="form-gate-hint" hidden></p>
+          </div>
+        </form>
+      </section>
+    </main>
+
+        <footer class="site-footer">
+      <p>© Company XYZ</p>
+    </footer>
+    <script src="../mockups-nav.js"></script>
+    <script src="flow.js"></script>
+  </body>
+</html>

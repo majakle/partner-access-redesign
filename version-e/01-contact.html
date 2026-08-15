@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Partner access — Contact person</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;650;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../mockups.css" />
+  </head>
+  <body data-flow-step="contact">
+        <nav class="primary-nav primary-nav--anon" aria-label="Primary">
+      <a href="index.html" class="logo-text">LOGO</a>
+      <div class="nav-end">
+        <div class="lang-switcher" aria-label="Language">
+          <a href="#" class="lang-link">NL</a>
+          <span class="lang-divider">/</span>
+          <a href="#" class="lang-link lang-link--active">EN</a>
+          <span class="lang-divider">/</span>
+          <a href="#" class="lang-link">DE</a>
+        </div>
+        <a class="nav-cta" href="#">Sign in</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <div class="progress-pct" aria-label="Progress 25 percent">
+        <div class="progress-pct-meta">
+          <span>Step 1 of 4 — Contact person</span>
+          <span>25%</span>
+        </div>
+        <div class="progress-pct-track">
+          <div class="progress-pct-fill" style="width: 25%"></div>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h1>Contact person</h1>
+        <p class="lede">
+          We’ll use these details to contact you about your partner request.
+        </p>
+        <p class="hint section-req-note">
+          Required fields are marked with <span class="req">*</span>
+        </p>
+
+        <form action="02-company.html" method="get" autocomplete="on">
+          <div class="row-2">
+            <div class="field">
+              <label for="first"
+                >First name <span class="req" aria-hidden="true">*</span></label
+              >
+              <input
+                id="first"
+                name="fname"
+                autocomplete="given-name"
+                required
+                aria-required="true"
+              />
+            </div>
+            <div class="field">
+              <label for="last"
+                >Last name <span class="req" aria-hidden="true">*</span></label
+              >
+              <input
+                id="last"
+                name="lname"
+                autocomplete="family-name"
+                required
+                aria-required="true"
+              />
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label for="email"
+              >Work email
+              <span class="req" aria-hidden="true">*</span></label
+            >
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                aria-required="true"
+              />
+              <p class="hint">e.g. name@company.com</p>
+              <p id="email-error" class="field-error" hidden>
+                Please use a valid work email (e.g. name@company.com).
+              </p>
+            </div>
+            <div class="field">
+              <label for="phone"
+                >Phone number
+                <span class="optional-tag">Optional</span></label
+              >
+              <div class="phone-row">
+                <select
+                  id="phone-country"
+                  name="phone_country"
+                  aria-label="Phone country code"
+                >
+                  <option value="NL" data-dial="31" selected>NL +31</option>
+                  <option value="BE" data-dial="32">BE +32</option>
+                  <option value="LU" data-dial="352">LU +352</option>
+                  <option value="DE" data-dial="49">DE +49</option>
+                  <option value="FR" data-dial="33">FR +33</option>
+                  <option value="AT" data-dial="43">AT +43</option>
+                  <option value="IT" data-dial="39">IT +39</option>
+                  <option value="ES" data-dial="34">ES +34</option>
+                  <option value="PT" data-dial="351">PT +351</option>
+                  <option value="IE" data-dial="353">IE +353</option>
+                  <option value="DK" data-dial="45">DK +45</option>
+                  <option value="SE" data-dial="46">SE +46</option>
+                  <option value="FI" data-dial="358">FI +358</option>
+                  <option value="PL" data-dial="48">PL +48</option>
+                  <option value="CZ" data-dial="420">CZ +420</option>
+                  <option value="SK" data-dial="421">SK +421</option>
+                  <option value="SI" data-dial="386">SI +386</option>
+                  <option value="HR" data-dial="385">HR +385</option>
+                  <option value="HU" data-dial="36">HU +36</option>
+                  <option value="RO" data-dial="40">RO +40</option>
+                  <option value="BG" data-dial="359">BG +359</option>
+                  <option value="GR" data-dial="30">GR +30</option>
+                  <option value="EE" data-dial="372">EE +372</option>
+                  <option value="LV" data-dial="371">LV +371</option>
+                  <option value="LT" data-dial="370">LT +370</option>
+                  <option value="MT" data-dial="356">MT +356</option>
+                  <option value="CY" data-dial="357">CY +357</option>
+                </select>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  autocomplete="tel-national"
+                  inputmode="tel"
+                  placeholder="6 12345678"
+                />
+              </div>
+              <p id="phone-hint" class="hint">
+                Include your local number without the country code.
+              </p>
+              <p id="phone-error" class="field-error" hidden>
+                Please check the phone number for the selected country.
+              </p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a class="btn btn-secondary" href="index.html">Back</a>
+            <a
+              class="btn btn-primary is-disabled can-nudge"
+              id="continue-btn"
+              href="02-company.html"
+              aria-disabled="true"
+              >Continue</a
+            >
+            <p id="form-gate-hint" class="form-gate-hint" hidden></p>
+          </div>
+        </form>
+      </section>
+    </main>
+
+        <footer class="site-footer">
+      <p>© Company XYZ</p>
+    </footer>
+    <script src="../mockups-nav.js"></script>
+    <script src="flow.js"></script>
+  </body>
+</html>

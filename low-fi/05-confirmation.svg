@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="860" viewBox="0 0 960 860" fill="none">
+  <rect width="960" height="860" fill="#F0F0F0"/>
+  <rect x="0.5" y="0.5" width="959" height="55" fill="white" stroke="#B8B8B8"/>
+  <text x="32" y="34" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#262626">LOGO</text>
+  <text x="720" y="34" font-family="Inter, Arial, sans-serif" font-size="11" fill="#737373">NL / EN / DE</text>
+  <rect x="850" y="14" width="78" height="28" fill="white" stroke="#262626"/>
+  <text x="868" y="33" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#262626">Sign in</text>
+  <text x="120" y="92" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#737373">Step 4 of 4 — Confirmation</text>
+  <text x="800" y="92" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#737373">100%</text>
+  <rect x="120" y="102" width="720" height="6" rx="2" fill="#E0E0E0"/>
+  <rect x="120" y="102" width="720" height="6" rx="2" fill="#383838"/>
+  <rect x="120" y="130" width="720" height="500" rx="8" fill="white" stroke="#B8B8B8"/>
+  <rect x="148" y="158" width="664" height="44" rx="6" fill="#E6EBE6" stroke="#B8B8B8"/>
+  <text x="164" y="185" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#262626">Thank you — your partner application is with our team.</text>
+  <text x="148" y="255" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#262626">You’re one step closer</text>
+  <text x="148" y="285" font-family="Inter, Arial, sans-serif" font-size="13" fill="#737373">We’re reviewing your details so we can welcome the right partners.</text>
+  <text x="148" y="330" font-family="Inter, Arial, sans-serif" font-size="14" fill="#262626">1  You’ll receive an email confirming we have your application.</text>
+  <text x="148" y="362" font-family="Inter, Arial, sans-serif" font-size="14" fill="#262626">2  Our team carefully reviews every partner request.</text>
+  <text x="148" y="394" font-family="Inter, Arial, sans-serif" font-size="14" fill="#262626">3  You’ll hear from us within 3 business days.</text>
+  <text x="148" y="418" font-family="Inter, Arial, sans-serif" font-size="13" fill="#737373">If approved, we’ll show you how to get started.</text>
+  <rect x="148" y="450" width="170" height="40" rx="4" fill="#383838"/>
+  <text x="168" y="475" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="white">Back to homepage</text>
+</svg>

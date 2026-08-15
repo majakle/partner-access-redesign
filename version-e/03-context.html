@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Partner access — About your business</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;650;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../mockups.css" />
+  </head>
+  <body data-flow-step="context">
+        <nav class="primary-nav primary-nav--anon" aria-label="Primary">
+      <a href="index.html" class="logo-text">LOGO</a>
+      <div class="nav-end">
+        <div class="lang-switcher" aria-label="Language">
+          <a href="#" class="lang-link">NL</a>
+          <span class="lang-divider">/</span>
+          <a href="#" class="lang-link lang-link--active">EN</a>
+          <span class="lang-divider">/</span>
+          <a href="#" class="lang-link">DE</a>
+        </div>
+        <a class="nav-cta" href="#">Sign in</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <div class="progress-pct" aria-label="Progress 75 percent">
+        <div class="progress-pct-meta">
+          <span>Step 3 of 4 — About your business</span>
+          <span>75%</span>
+        </div>
+        <div class="progress-pct-track">
+          <div class="progress-pct-fill" style="width: 75%"></div>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h1>About your business</h1>
+        <p class="lede">
+          Optional details can help us review your request faster.
+        </p>
+
+        <form action="04-confirmation.html" method="get" id="context-form">
+          <div class="row-2">
+            <div class="field">
+              <label for="website"
+                >Company website <span class="optional-tag">Optional</span></label
+              >
+              <input
+                id="website"
+                name="website"
+                autocomplete="url"
+                placeholder="www.yourcompany.com"
+              />
+              <p id="website-error" class="field-error" hidden>
+                Please enter a valid website (e.g. www.yourcompany.com).
+              </p>
+            </div>
+            <div class="field">
+              <label for="social"
+                >Social media profile
+                <span class="optional-tag">Optional</span></label
+              >
+              <input
+                id="social"
+                name="social"
+                autocomplete="url"
+                placeholder="Instagram, LinkedIn, or other profile URL"
+              />
+              <p id="social-error" class="field-error" hidden>
+                Please enter a valid profile link (e.g. linkedin.com/company/…).
+              </p>
+            </div>
+          </div>
+          <div class="field">
+            <label for="desc"
+              >About your company
+              <span class="optional-tag">Optional</span></label
+            >
+            <textarea
+              id="desc"
+              name="desc"
+              rows="4"
+              placeholder="Tell us briefly about your projects or showroom focus"
+            ></textarea>
+          </div>
+
+          <label class="terms">
+            <input type="checkbox" id="terms" required />
+            <span
+              >I agree to the <a href="#">terms and conditions</a> of Company
+              XYZ <span class="req" aria-hidden="true">*</span></span
+            >
+          </label>
+
+          <div class="actions">
+            <a class="btn btn-secondary" href="02-company.html">Back</a>
+            <button
+              class="btn btn-primary is-disabled can-nudge"
+              type="submit"
+              id="continue-btn"
+            >
+              Request access
+            </button>
+            <p id="form-gate-hint" class="form-gate-hint" hidden></p>
+          </div>
+        </form>
+      </section>
+    </main>
+
+        <footer class="site-footer">
+      <p>© Company XYZ</p>
+    </footer>
+    <script src="../mockups-nav.js"></script>
+    <script src="flow.js"></script>
+  </body>
+</html>

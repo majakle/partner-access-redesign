@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Partner access — screenshots &amp; improvements</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1f1c;
+      --muted: #5c6560;
+      --line: #d8ddd8;
+      --paper: #f4f1ea;
+      --card: #fff;
+      --green: #2f4a3a;
+      --green-soft: #e8f0ea;
+      --accent: #3d5c48;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Sans 3", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+    }
+    header.hero {
+      padding: 2.5rem 1.5rem 2rem;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; }
+    h1, h2, h3 {
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    h1 { font-size: clamp(1.75rem, 4vw, 2.35rem); margin: 0 0 0.5rem; }
+    h2 { font-size: 1.45rem; margin: 0 0 0.65rem; }
+    h3 { font-size: 1.15rem; margin: 0 0 0.4rem; }
+    .lede { color: var(--muted); font-size: 1.05rem; max-width: 42rem; margin: 0; }
+    .meta {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .meta a { color: var(--green); }
+    nav.toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      margin-top: 1.25rem;
+      font-size: 0.95rem;
+    }
+    nav.toc a { color: var(--green); text-decoration: none; border-bottom: 1px solid transparent; }
+    nav.toc a:hover { border-bottom-color: var(--green); }
+    main { padding: 2rem 1.5rem 4rem; }
+    section { margin-bottom: 3rem; }
+    .shot {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 1rem 0 0.75rem;
+    }
+    .shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .caption {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .why {
+      background: var(--green-soft);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+    }
+    .why strong { color: var(--green); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.75rem 0.9rem;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      background: #eef2ef;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    tr:last-child td { border-bottom: none; }
+    .pill {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-soft);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.35rem;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.5rem;
+      margin: 1rem 0 0;
+    }
+    .flow div {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.88rem;
+    }
+    .flow span {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <h1>Partner access redesign — how it works</h1>
+      <p class="lede">
+        Annotated screenshots of Version E (the current redesign), plus what changed versus the previous live form and why — based on SUS, interviews, and heuristic findings.
+      </p>
+      <p class="meta">
+        Interactive form: <a href="../version-e/index.html">version-e/</a>
+        · Full rationale: <a href="../IMPROVEMENTS.md">IMPROVEMENTS.md</a>
+      </p>
+      <nav class="toc" aria-label="On this page">
+        <a href="#flow">Flow overview</a>
+        <a href="#screens">Screen by screen</a>
+        <a href="#improvements">What improved &amp; why</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="flow">
+      <h2>Flow overview</h2>
+      <p class="lede" style="margin-bottom:0">
+        Registration is framed as a <strong>partner access request</strong>, not instant account creation. Existing users are steered to Sign in; new partners move through four short steps with a progress bar.
+      </p>
+      <div class="flow">
+        <div><span>Start</span> Partner with us — benefits &amp; made for trade</div>
+        <div><span>25%</span> Contact person — name, work email, optional phone</div>
+        <div><span>50%</span> Company — find by name/VAT or enter manually</div>
+        <div><span>75%</span> About your business — optional profile + terms</div>
+        <div><span>100%</span> Confirmation — email → review → reply in 3 days</div>
+      </div>
+    </section>
+
+    <section id="screens">
+      <h2>Screen by screen</h2>
+
+      <article>
+        <p class="pill">Gateway</p>
+        <h3>1. Partner with us</h3>
+        <div class="shot">
+          <img src="01-gateway.png" alt="Gateway: Partner with us with benefits list and Made for trade" />
+        </div>
+        <p class="caption">Entry page — premium invite tone before any form fields.</p>
+        <div class="why">
+          <strong>Why:</strong> Replaces “Create account” with partner application framing (P1). Separates Sign in from the primary CTA (P2). States benefits and audience so the wrong visitors leave early.
+        </div>
+      </article>
+
+      <article style="margin-top:2.5rem">
+        <p class="pill">Step 1 of 4 · 25%</p>
+        <h3>2. Contact person</h3>
+        <div class="shot">
+          <img src="02-contact.png" alt="Contact person step with name, email, and phone with country dial code" />
+        </div>
+        <p class="caption">Required name &amp; work email; phone optional with country dial code.</p>
+        <div class="why">
+          <strong>Why:</strong> Splits the old long form into short steps with progress (P3). Purpose microcopy and required * markers reduce confusion (P5). Phone stays optional so it doesn’t block submission.
+        </div>
+      </article>
+
+      <article style="margin-top:2.5rem">
+        <p class="pill">Step 2 of 4 · 50%</p>
+        <h3>3. Company — find by name or VAT</h3>
+        <div class="shot">
+          <img src="03-company-search.png" alt="Company search result for Company XY with Use these details" />
+        </div>
+        <p class="caption">Demo: search “Company XY” → confirm card → Use these details.</p>
+        <div class="why">
+          <strong>Why:</strong> Cuts manual company + VAT + address typing (P5b). Confirm-before-commit prevents wrong autofill. Manual entry remains as fallback.
+        </div>
+      </article>
+
+      <article style="margin-top:2.5rem">
+        <p class="pill">Step 2 · after confirm</p>
+        <h3>4. Company details applied</h3>
+        <div class="shot">
+          <img src="04-company-filled.png" alt="Company and address fields filled after selecting Company XY" />
+        </div>
+        <p class="caption">Fields prefilled; postal + house lookup can refine the address.</p>
+        <div class="why">
+          <strong>Why:</strong> Users verify and edit rather than retype. Address lookup (PDOK / Photon) matches the Benelux autofill pattern users asked for.
+        </div>
+      </article>
+
+      <article style="margin-top:2.5rem">
+        <p class="pill">Step 3 of 4 · 75%</p>
+        <h3>5. About your business</h3>
+        <div class="shot">
+          <img src="05-about-business.png" alt="Optional website, social, about company, and terms with Request access button" />
+        </div>
+        <p class="caption">Website / social / about are optional; only terms are required to submit.</p>
+        <div class="why">
+          <strong>Why:</strong> Mandatory website blocked offline/studio partners (P4). Optional profile still helps review, without gating access. CTA says “Request access,” not “Create account.”
+        </div>
+      </article>
+
+      <article style="margin-top:2.5rem">
+        <p class="pill">Step 4 of 4 · 100%</p>
+        <h3>6. Confirmation</h3>
+        <div class="shot">
+          <img src="06-confirmation.png" alt="Confirmation: you’re one step closer, review within 3 business days" />
+        </div>
+        <p class="caption">Warm thank-you plus clear next steps and a 3-business-day review — access is not active yet.</p>
+        <div class="why">
+          <strong>Why:</strong> Post-submit silence was a top interview complaint (P6). Full page (not a dismissible popup) avoids accidental loss (P7). Language control stays in the header (P8).
+        </div>
+      </article>
+    </section>
+
+    <section id="improvements">
+      <h2>What improved vs the previous form</h2>
+      <p class="lede" style="margin-bottom:1rem">
+        Previous live experience: hybrid sign-in + “create account,” long single form (often in a popup), mandatory website, heavy manual entry, and unclear review timing. Mean SUS in the study: <strong>63.75</strong> (below ~68).
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Problem</th>
+            <th>Previous form</th>
+            <th>Version E</th>
+            <th>Why it matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P1 Wording</td>
+            <td>“Create account” implies instant access</td>
+            <td>“Partner with us” / application + review before access</td>
+            <td>Matches manual review; protects trust after submit</td>
+          </tr>
+          <tr>
+            <td>P2 Sign-in vs register</td>
+            <td>Both compete on one view</td>
+            <td>Primary CTA = request; Sign in in header + secondary link</td>
+            <td>Fewer wrong first actions</td>
+          </tr>
+          <tr>
+            <td>P3 Length</td>
+            <td>One long page / heavy scroll</td>
+            <td>4 steps + progress %</td>
+            <td>Lower perceived effort; clearer status</td>
+          </tr>
+          <tr>
+            <td>P4 Website</td>
+            <td>Mandatory</td>
+            <td>Optional (with purpose hint)</td>
+            <td>Doesn’t block studios without a site</td>
+          </tr>
+          <tr>
+            <td>P5 Guidance</td>
+            <td>Weak examples / late errors</td>
+            <td>Examples, optional badges, required *, dial code</td>
+            <td>Fewer late surprises</td>
+          </tr>
+          <tr>
+            <td>P5b Entry effort</td>
+            <td>Manual company + address</td>
+            <td>Name/VAT find + address lookup</td>
+            <td>Less typing; fewer typos</td>
+          </tr>
+          <tr>
+            <td>P6 After submit</td>
+            <td>Vague “we will review”</td>
+            <td>Email → review → <strong>3 business days</strong></td>
+            <td>Trade buyers can plan</td>
+          </tr>
+          <tr>
+            <td>P7 Container</td>
+            <td>Popup risk (click outside closes)</td>
+            <td>Full pages only</td>
+            <td>No accidental data loss</td>
+          </tr>
+          <tr>
+            <td>P8 Language</td>
+            <td>Incomplete / mixed locales</td>
+            <td>NL / EN / DE in header throughout</td>
+            <td>Signals full-locale intent</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="meta" style="margin-top:1.25rem">
+        Retained from the old form: clear labels, company → address logic, VAT as B2B check, no password at request stage.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

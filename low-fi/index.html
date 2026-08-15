@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modeus signup — low-fi wireframes</title>
+  <style>
+    :root {
+      --ink: #262626;
+      --muted: #737373;
+      --line: #b8b8b8;
+      --page: #f0f0f0;
+      --card: #fff;
+      --field: #f7f7f7;
+      --fill: #383838;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      background: #e4e4e4;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .board-header {
+      padding: 1.5rem 2rem;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .board-header h1 { margin: 0 0 0.35rem; font-size: 1.25rem; }
+    .board-header p { margin: 0; color: var(--muted); font-size: 0.9rem; max-width: 48rem; }
+    .board-header code { font-size: 0.85em; background: var(--page); padding: 0.1em 0.35em; }
+    .strip {
+      display: flex;
+      gap: 2rem;
+      padding: 2rem;
+      overflow-x: auto;
+      align-items: flex-start;
+    }
+    .screen {
+      flex: 0 0 420px;
+      background: var(--page);
+      border: 1px solid var(--line);
+      min-height: 640px;
+    }
+    .screen-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.5rem 0.75rem;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    .nav .logo { font-weight: 700; color: var(--ink); font-size: 0.75rem; }
+    .nav .grow { flex: 1; }
+    .nav .signin {
+      border: 1.5px solid var(--ink);
+      padding: 0.25rem 0.5rem;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .body { padding: 1rem 1.1rem 1.5rem; }
+    .progress { margin-bottom: 0.85rem; }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .track { height: 5px; background: #d4d4d4; border-radius: 2px; }
+    .track > i { display: block; height: 100%; background: var(--fill); border-radius: 2px; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1.1rem;
+    }
+    h2 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+    .lede { margin: 0 0 0.85rem; font-size: 0.75rem; color: var(--muted); }
+    .hint { font-size: 0.65rem; color: var(--muted); margin: 0 0 0.75rem; }
+    .field { margin-bottom: 0.65rem; }
+    .field label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .input {
+      border: 1px solid var(--line);
+      background: var(--field);
+      height: 2rem;
+      border-radius: 3px;
+      padding: 0 0.5rem;
+      font-size: 0.7rem;
+      color: var(--line);
+      display: flex;
+      align-items: center;
+    }
+    .row { display: flex; gap: 0.5rem; }
+    .row > * { flex: 1; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 3px;
+      border: 1.5px solid var(--fill);
+      background: #fff;
+      color: var(--ink);
+    }
+    .btn.primary { background: var(--fill); color: #fff; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.85rem; }
+    .aside {
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-size: 0.7rem;
+    }
+    .aside h3 { margin: 0 0 0.35rem; font-size: 0.75rem; }
+    .aside p { margin: 0; color: var(--muted); font-size: 0.65rem; }
+    .split { display: flex; gap: 0.75rem; }
+    .split > :first-child { flex: 1; }
+    ul.benefits { margin: 0 0 0.75rem; padding-left: 1rem; font-size: 0.75rem; }
+    .finder {
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .confirm {
+      background: #e8ebe8;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.65rem;
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+    }
+    .confirm strong { display: block; margin-bottom: 0.25rem; }
+    .callout {
+      background: #e8ebe8;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    ol.roadmap { margin: 0 0 0.85rem; padding-left: 1.1rem; font-size: 0.75rem; }
+    .terms { display: flex; gap: 0.4rem; align-items: center; font-size: 0.7rem; margin: 0.5rem 0; }
+    .check { width: 14px; height: 14px; border: 1.5px solid var(--line); border-radius: 2px; background: #fff; flex: 0 0 auto; }
+    .notes {
+      margin: 0 2rem 2rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      max-width: 520px;
+    }
+    .notes h2 { font-size: 1rem; margin: 0 0 0.65rem; }
+    .notes li { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+  </style>
+</head>
+<body>
+  <div class="board-header">
+    <h1>Modeus partner signup — low-fi (Version E)</h1>
+    <p>
+      Grayscale wireframes matching the redesigned flow. To get <strong>editable Figma layers</strong>,
+      import the plugin at <code>low-fi/figma-plugin/manifest.json</code> (see README).
+      This page is a static preview you can also screenshot into Figma.
+    </p>
+  </div>
+
+  <div class="strip">
+    <!-- 01 Gateway -->
+    <article class="screen">
+      <div class="screen-label">01 · Gateway</div>
+      <div class="nav">
+        <span class="logo">LOGO</span>
+        <span class="grow">About · Made to Order · Brand · Services · NL/EN/DE</span>
+        <span class="signin">Sign in</span>
+      </div>
+      <div class="body">
+        <div class="panel">
+          <h2>Partner with us</h2>
+          <p class="lede">Apply for partner access and unlock tools built for showrooms, projects, and made-to-order selling.</p>
+          <div class="split" style="margin-top:0.75rem">
+            <div>
+              <ul class="benefits">
+                <li>Configure products in 3D with your clients</li>
+                <li>Order through the partner portal</li>
+                <li>Keep catalogues current with product feeds</li>
+              </ul>
+              <button class="btn primary" type="button">Start partner application</button>
+              <p class="hint" style="margin-top:0.65rem">Already a partner? Sign in</p>
+            </div>
+            <aside class="aside">
+              <h3>Made for trade</h3>
+              <p>Furniture retailers, interior designers, and contract furnishers who sell with care.</p>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 02 Contact -->
+    <article class="screen">
+      <div class="screen-label">02 · Contact · 25%</div>
+      <div class="nav">
+        <span class="logo">LOGO</span>
+        <span class="grow">About · … · NL/EN/DE</span>
+        <span class="signin">Sign in</span>
+      </div>
+      <div class="body">
+        <div class="progress">
+          <div class="progress-meta"><span>Step 1 of 4 — Contact person</span><span>25%</span></div>
+          <div class="track"><i style="width:25%"></i></div>
+        </div>
+        <div class="panel">
+          <h2>Contact person</h2>
+          <p class="lede">We’ll use these details to contact you about your partner request.</p>
+          <p class="hint">Required fields are marked with *</p>
+          <div class="row">
+            <div class="field"><label>First name *</label><div class="input"></div></div>
+            <div class="field"><label>Last name *</label><div class="input"></div></div>
+          </div>
+          <div class="field"><label>Work email *</label><div class="input">e.g. name@company.com</div></div>
+          <div class="row">
+            <div class="field" style="flex:0.45"><label>Country code</label><div class="input">NL +31</div></div>
+            <div class="field"><label>Phone number (optional)</label><div class="input"></div></div>
+          </div>
+          <div class="actions">
+            <button class="btn" type="button">Back</button>
+            <button class="btn primary" type="button">Continue</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 03 Company -->
+    <article class="screen">
+      <div class="screen-label">03 · Company · 50%</div>
+      <div class="nav">
+        <span class="logo">LOGO</span>
+        <span class="grow">About · … · NL/EN/DE</span>
+        <span class="signin">Sign in</span>
+      </div>
+      <div class="body">
+        <div class="progress">
+          <div class="progress-meta"><span>Step 2 of 4 — Company details</span><span>50%</span></div>
+          <div class="track"><i style="width:50%"></i></div>
+        </div>
+        <div class="panel">
+          <h2>Company details</h2>
+          <p class="lede">Find your company by name or VAT ID.</p>
+          <div class="finder">
+            <div class="field" style="margin:0">
+              <label>Company name or VAT ID</label>
+              <div class="row">
+                <div class="input" style="flex:1">e.g. Modeus or NL…</div>
+                <button class="btn primary" type="button">Find company</button>
+              </div>
+            </div>
+            <div class="confirm">
+              <strong>Check that these details are correct.</strong>
+              Modeus B.V.<br />
+              Jan van Krimpenweg 7M · Haarlem<br />
+              NL855264159B01
+              <div class="actions" style="margin-top:0.5rem">
+                <button class="btn primary" type="button">Use these details</button>
+                <button class="btn" type="button">Search again</button>
+              </div>
+            </div>
+            <p class="hint" style="margin:0.5rem 0 0">Enter company details manually</p>
+          </div>
+          <div class="row">
+            <div class="field"><label>Company name *</label><div class="input"></div></div>
+            <div class="field"><label>VAT ID *</label><div class="input"></div></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Postal code *</label><div class="input"></div></div>
+            <div class="field"><label>House no. (opt.)</label><div class="input"></div></div>
+          </div>
+          <div class="actions">
+            <button class="btn" type="button">Back</button>
+            <button class="btn primary" type="button">Continue</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 04 About -->
+    <article class="screen">
+      <div class="screen-label">04 · About business · 75%</div>
+      <div class="nav">
+        <span class="logo">LOGO</span>
+        <span class="grow">About · … · NL/EN/DE</span>
+        <span class="signin">Sign in</span>
+      </div>
+      <div class="body">
+        <div class="progress">
+          <div class="progress-meta"><span>Step 3 of 4 — About your business</span><span>75%</span></div>
+          <div class="track"><i style="width:75%"></i></div>
+        </div>
+        <div class="panel">
+          <h2>About your business</h2>
+          <p class="lede">Optional details can help us review your request faster.</p>
+          <div class="field"><label>Company website (optional)</label><div class="input">www.yourcompany.com</div></div>
+          <div class="field"><label>Social media profile (optional)</label><div class="input">Instagram / LinkedIn URL</div></div>
+          <div class="field"><label>About your company (optional)</label><div class="input" style="height:3.5rem;align-items:flex-start;padding-top:0.4rem">Brief description…</div></div>
+          <div class="terms"><span class="check"></span> I agree to the terms and conditions of Modeus B.V.</div>
+          <div class="actions">
+            <button class="btn" type="button">Back</button>
+            <button class="btn primary" type="button">Request access</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 05 Confirmation -->
+    <article class="screen">
+      <div class="screen-label">05 · Confirmation · 100%</div>
+      <div class="nav">
+        <span class="logo">LOGO</span>
+        <span class="grow">About · … · NL/EN/DE</span>
+        <span class="signin">Sign in</span>
+      </div>
+      <div class="body">
+        <div class="progress">
+          <div class="progress-meta"><span>Step 4 of 4 — Confirmation</span><span>100%</span></div>
+          <div class="track"><i style="width:100%"></i></div>
+        </div>
+        <div class="panel">
+          <div class="callout">Thank you — your partner application is with our team.</div>
+          <h2>You’re one step closer</h2>
+          <p class="lede">We’re reviewing your details so we can welcome the right partners.</p>
+          <ol class="roadmap">
+            <li>You’ll receive an email confirming we have your application.</li>
+            <li>Our team carefully reviews every partner request.</li>
+            <li>You’ll hear from us within <strong>3 business days</strong>. If approved, we’ll show you how to get started.</li>
+          </ol>
+          <button class="btn primary" type="button">Back to homepage</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <aside class="notes">
+    <h2>Annotations — vs previous form</h2>
+    <ol>
+      <li>Partner application wording (not “Create account”)</li>
+      <li>Sign in separated from request CTA</li>
+      <li>Multi-step + % progress</li>
+      <li>Website / social / about optional</li>
+      <li>Company/VAT find + address lookup</li>
+      <li>Confirmation with 3-day SLA</li>
+      <li>Full pages only (no popup)</li>
+    </ol>
+  </aside>
+</body>
+</html>
