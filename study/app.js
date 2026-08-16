@@ -434,14 +434,10 @@
     }
     state.consent = true;
     state.startedAt = new Date().toISOString();
-    let pid = ($("participant-id").value || "").trim();
-    if (!pid) {
-      pid =
-        "P" +
-        Date.now().toString(36).toUpperCase().slice(-6) +
-        Math.floor(Math.random() * 90 + 10);
-    }
-    state.participantId = pid;
+    state.participantId =
+      "P" +
+      Date.now().toString(36).toUpperCase().slice(-6) +
+      Math.floor(Math.random() * 90 + 10);
     assignOrder();
     $("order-label").textContent =
       state.order === "AB"
