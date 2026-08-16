@@ -9,7 +9,12 @@
 
 Participants are instructed to email both files to **maja.skale@student.um.si** (or upload to your Drive folder).
 
-## Invite text (short)
+## Recording tip for participants
+
+When prompted, choose **Chrome Tab** → **this study tab** (not Entire Screen). Forms load inside the page, so the recording stays on the registration UI.
+
+Timers stop automatically when Version A shows success or Version B reaches the confirmation page.
+
 
 > Please open this link on a laptop/desktop with Chrome or Edge:  
 > https://majakle.github.io/partner-access-redesign/study/  
