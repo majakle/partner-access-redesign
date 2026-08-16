@@ -59,7 +59,16 @@
         </ol>
 
         <div class="actions">
-          <a class="btn btn-primary" href="index.html">Back to homepage</a>
+          <a class="btn btn-primary" id="btn-back-home" href="index.html"
+            >Back to homepage</a
+          >
+          <button
+            type="button"
+            class="btn btn-primary hidden"
+            id="btn-return-study"
+          >
+            Return to the evaluation
+          </button>
         </div>
       </section>
     </main>
@@ -70,13 +79,44 @@
     <script src="mockups-nav.js"></script>
     <script>
       (function () {
-        var msg = { type: "abba-task-complete", source: "redesign" };
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage(msg, "*");
+        function notifyStudyAndReturn() {
+          var msg = { type: "abba-task-complete", source: "redesign" };
+          try {
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage(msg, "*");
+            }
+            if (window.opener && !window.opener.closed) {
+              window.opener.postMessage(msg, "*");
+              try {
+                window.opener.focus();
+              } catch (e) {}
+              setTimeout(function () {
+                window.close();
+              }, 250);
+              return true;
+            }
+          } catch (e) {}
+          return false;
+        }
+
+        var fromStudy = !!(window.opener && !window.opener.closed);
+        if (fromStudy) {
+          var home = document.getElementById("btn-back-home");
+          var ret = document.getElementById("btn-return-study");
+          if (home) home.classList.add("hidden");
+          if (ret) {
+            ret.classList.remove("hidden");
+            ret.addEventListener("click", function () {
+              notifyStudyAndReturn();
+            });
           }
-          if (window.opener) window.opener.postMessage(msg, "*");
-        } catch (e) {}
+          // Auto-return: closing this tab reveals the evaluation tab
+          setTimeout(function () {
+            notifyStudyAndReturn();
+          }, 600);
+        } else {
+          notifyStudyAndReturn();
+        }
       })();
     </script>
   </body>
