@@ -1541,3 +1541,7 @@ a.btn.is-disabled.can-nudge {
 .field-error[hidden] {
   display: none;
 }
+
+.hidden {
+  display: none !important;
+}
