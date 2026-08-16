@@ -157,15 +157,22 @@
         <h1>How screen recording works</h1>
         <div class="card prose">
           <p>
-            Each registration form opens in a <strong>new browser tab</strong>.
-            After it opens, click <strong>Share form tab to record</strong>. In
-            the browser dialog, choose <strong>Chrome Tab</strong> (or “A tab”),
-            then select the <strong>form tab</strong> — not this study page and
-            not your entire screen.
+            Use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>
+            on a laptop/desktop (not Safari, not a phone, and not Cursor’s
+            built-in preview).
           </p>
           <p>
-            You will share once for Version A and once for Version B. Keep this
-            study tab open for the timer and questionnaires.
+            For each version you will click one button. Your browser will ask
+            what to share <strong>first</strong> — choose
+            <strong>Window</strong> → <strong>Google Chrome</strong> (or Edge).
+            Then the form opens in a new tab inside that window so only the
+            browser (not your whole desktop) is recorded.
+          </p>
+          <p>
+            On a Mac, Chrome must be allowed under
+            <strong>System Settings → Privacy &amp; Security → Screen
+            Recording</strong>. If sharing never appears, enable Chrome there,
+            quit Chrome completely, and reopen it.
           </p>
           <p>
             Your assigned order for this session:
@@ -194,11 +201,10 @@
             personal or company information.
           </p>
           <p>
-            Click <strong>Open form &amp; start timer</strong> — the form opens in
-            a new tab. Then click <strong>Share form tab to record</strong> and
-            choose <strong>Chrome Tab → that form tab</strong> (not this study
-            page). The timer stops automatically when you reach the confirmation /
-            success screen. Return here afterward.
+            Click <strong>Start recording &amp; open form</strong>. In the share
+            dialog choose <strong>Window → Google Chrome</strong> (recommended),
+            then the form opens. Keep this study tab available for the timer.
+            The timer stops automatically on the confirmation / success screen.
           </p>
         </div>
 
@@ -222,18 +228,12 @@
             <p id="form-open-status" class="hint hidden" aria-live="polite"></p>
             <p id="share-error" class="error hidden"></p>
             <p id="share-ok" class="ok hidden">
-              Recording the form tab. Complete the form, then return here.
+              Recording started. Complete the form in the other tab, then return
+              here.
             </p>
             <div class="btn-row">
               <button type="button" class="btn primary" id="btn-open-version">
-                Open form &amp; start timer
-              </button>
-              <button
-                type="button"
-                class="btn primary hidden"
-                id="btn-share-form"
-              >
-                Share form tab to record
+                Start recording &amp; open form
               </button>
             </div>
 

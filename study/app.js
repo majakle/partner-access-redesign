@@ -224,10 +224,8 @@
     document.querySelectorAll(".task-ver").forEach((el) => {
       el.textContent = v;
     });
-    $("btn-open-version").textContent = "Open form & start timer";
+    $("btn-open-version").textContent = "Start recording & open form";
     $("btn-open-version").disabled = false;
-    hide($("btn-share-form"));
-    $("btn-share-form").disabled = false;
     $("task-hint").textContent = S.hints[v] || "";
     document
       .querySelectorAll('input[name="task-complete"]')
@@ -262,71 +260,107 @@
     show($("timer-auto-msg"));
   }
 
-  function openFormAndStartTimer() {
+  function shareHelpText(err) {
+    const name = (err && err.name) || "";
+    const baseMac =
+      " On a Mac: System Settings → Privacy & Security → Screen Recording → turn on Google Chrome (or Edge), then fully quit and reopen the browser.";
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      return (
+        "This browser cannot record the screen. Open the study in Google Chrome or Microsoft Edge on a computer." +
+        baseMac
+      );
+    }
+    if (name === "NotAllowedError" || name === "NotFoundError") {
+      return (
+        "Screen share was blocked or cancelled (" +
+        name +
+        "). Click the button again. In the dialog choose Window → Google Chrome." +
+        baseMac
+      );
+    }
+    if (name === "AbortError") {
+      return "Screen share was cancelled. Click “Start recording & open form” again and choose Window → Google Chrome.";
+    }
+    return (
+      "Could not start recording" +
+      (name ? " (" + name + ")" : "") +
+      ". Use Chrome/Edge, click the button again, and choose Window → Google Chrome." +
+      baseMac
+    );
+  }
+
+  async function startRecordingAndOpenForm() {
     const v = currentVersion();
     hide($("task-error"));
     hide($("share-error"));
     hide($("share-ok"));
+    hide($("form-open-status"));
 
+    if (!window.isSecureContext) {
+      $("share-error").textContent =
+        "Screen recording only works on HTTPS. Open the GitHub Pages study link in Chrome.";
+      show($("share-error"));
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      $("share-error").textContent = shareHelpText({ name: "Unsupported" });
+      show($("share-error"));
+      // Still allow completing the task without video
+      openFormWindowOnly(v);
+      return;
+    }
+
+    $("btn-open-version").disabled = true;
+
+    // CRITICAL: call getDisplayMedia first, while this click is still a valid user gesture.
+    // Opening a tab before share consumes the gesture and Chrome shows no picker.
+    let recorded = false;
+    try {
+      const status = $("form-open-status");
+      if (status) {
+        status.textContent =
+          "Choose Window → Google Chrome (or Edge) in the share dialog…";
+        show(status);
+      }
+      await startFormRecording(v);
+      recorded = true;
+      show($("share-ok"));
+    } catch (err) {
+      $("share-error").textContent = shareHelpText(err);
+      show($("share-error"));
+      $("btn-open-version").disabled = false;
+      // Open the form anyway so the study can continue without video
+    }
+
+    openFormWindowOnly(v);
+    if (recorded) {
+      hide($("form-open-status"));
+      $("btn-open-version").textContent = "Recording… form opened";
+    } else {
+      const status = $("form-open-status");
+      if (status) {
+        status.textContent =
+          "Form opened without recording. Fix screen-share permission, then click the button again (or continue without video).";
+        show(status);
+      }
+    }
+  }
+
+  function openFormWindowOnly(v) {
     const win = window.open(S.urls[v], "abba-form-" + v);
     if (!win) {
       $("task-error").textContent =
         "Pop-up blocked. Allow pop-ups for this site, then try again.";
       show($("task-error"));
+      $("btn-open-version").disabled = false;
       return;
     }
     state.formWindow = win;
     state.formOpened = true;
-
-    // Return focus to the study tab so the participant can click Share
+    startTimer();
     try {
       window.focus();
     } catch (_) {}
-
-    startTimer();
-    $("btn-open-version").disabled = true;
-
-    const status = $("form-open-status");
-    if (status) {
-      status.textContent =
-        "Form opened. Stay on this study tab and click “Share form tab to record”, then choose Chrome Tab → Version " +
-        v +
-        " form (not this page).";
-      show(status);
-    }
-    show($("btn-share-form"));
-    $("btn-share-form").disabled = false;
-  }
-
-  async function shareFormTabRecording() {
-    const v = currentVersion();
-    hide($("share-error"));
-    hide($("share-ok"));
-
-    if (!state.formOpened) {
-      $("share-error").textContent =
-        "Open the form first, then share that form’s tab to record.";
-      show($("share-error"));
-      return;
-    }
-
-    // Fresh user click — required for Chrome to show the share picker
-    $("btn-share-form").disabled = true;
-    try {
-      await startFormRecording(v);
-      show($("share-ok"));
-      hide($("form-open-status"));
-      $("btn-share-form").textContent = "Recording…";
-    } catch (err) {
-      const name = err && err.name ? err.name : "";
-      const detail = err && err.message ? err.message : "blocked";
-      $("share-error").textContent =
-        "Could not start screen share (" +
-        (name || detail) +
-        "). Click “Share form tab to record” again and choose Chrome Tab → the form tab. Do not choose this study page.";
-      show($("share-error"));
-      $("btn-share-form").disabled = false;
-    }
   }
 
   function prepareSUSUI() {
@@ -369,22 +403,26 @@
     state.recordingVersion = version;
     state.chunks = [];
 
-    // Minimal constraints — extra options can prevent the picker on some Chrome builds
     const stream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: false,
     });
     state.stream = stream;
 
-    let mime = "video/webm;codecs=vp9";
+    let mime = "video/webm;codecs=vp8";
     if (!MediaRecorder.isTypeSupported(mime)) mime = "video/webm";
     if (!MediaRecorder.isTypeSupported(mime)) mime = "";
     state.recordingMime = mime || "video/webm";
 
-    const recorder = new MediaRecorder(
-      stream,
-      mime ? { mimeType: mime, videoBitsPerSecond: 600_000 } : undefined
-    );
+    let recorder;
+    try {
+      recorder = new MediaRecorder(
+        stream,
+        mime ? { mimeType: mime, videoBitsPerSecond: 800_000 } : undefined
+      );
+    } catch (_) {
+      recorder = new MediaRecorder(stream);
+    }
     state.recorder = recorder;
     recorder.ondataavailable = (e) => {
       if (e.data && e.data.size) state.chunks.push(e.data);
@@ -752,11 +790,7 @@
   });
 
   $("btn-open-version").addEventListener("click", () => {
-    openFormAndStartTimer();
-  });
-
-  $("btn-share-form").addEventListener("click", () => {
-    shareFormTabRecording();
+    startRecordingAndOpenForm();
   });
 
   $("btn-finish-task").addEventListener("click", async () => {
