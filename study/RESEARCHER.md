@@ -6,8 +6,10 @@
 
 1. Inclusion: **desktop/laptop + Chrome or Edge** only.
 2. Forms open in a **new browser tab**; share **Window → Google Chrome**.
-3. AB/BA order is assigned **alternately** via the Apps Script counter (falls back to this browser’s localStorage if the counter is unavailable).
-4. On finish: **Submitting… keep this page open** → wait for Drive upload → thank you (or error + retry).
+3. AB/BA order is assigned **alternately** via the Apps Script counter (not random). Redeploy `Code.gs` so `nextOrder` is active.
+4. Task hints are identical for Version A and B.
+5. On finish: **Submitting… keep this page open** → await Drive upload → thank you (or error + retry).
+6. No device question in the background section.
 
 ## Auto-upload to Google Drive (required once)
 

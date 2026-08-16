@@ -9,8 +9,8 @@ window.STUDY = {
     B: "https://majakle.github.io/partner-access-redesign/",
   },
   hints: {
-    A: "In the new tab, click Create account if you see sign-in first. When the success screen appears, return to this study tab for the questionnaire.",
-    B: "In the new tab, click Start partner application. On the company step you may search Company or the VAT ID. When you reach the confirmation page, return here for the questionnaire.",
+    A: "Complete the registration process using the fictional information provided.",
+    B: "Complete the registration process using the fictional information provided.",
   },
   testData: [
     ["Company name", "Company"],
@@ -94,7 +94,6 @@ window.STUDY = {
     "Extensive experience",
   ],
   priorRegistration: ["Yes", "No", "I am not sure"],
-  devices: ["Desktop computer", "Laptop computer"],
   ages: [
     "Under 18",
     "18–24",

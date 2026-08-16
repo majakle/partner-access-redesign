@@ -739,9 +739,7 @@
     state.consent = true;
     state.startedAt = new Date().toISOString();
     state.participantId =
-      "P" +
-      Date.now().toString(36).toUpperCase().slice(-6) +
-      Math.floor(Math.random() * 90 + 10);
+      "P" + Date.now().toString(36).toUpperCase();
     $("btn-consent").disabled = true;
     await assignOrder();
     $("btn-consent").disabled = false;
@@ -836,12 +834,11 @@
     if (role === "Other") {
       role = ($("role-other") && $("role-other").value.trim()) || "Other";
     }
-    const device = radioValue("device");
     const b2b = radioValue("b2b");
     const prior = radioValue("prior");
     const age = radioValue("age");
     const country = ($("demo-country").value || "").trim();
-    if (!role || !b2b || !prior || !device || !age || !country) {
+    if (!role || !b2b || !prior || !age || !country) {
       $("bg-error").textContent = "Please complete all required background questions.";
       show($("bg-error"));
       return;
@@ -850,7 +847,6 @@
       role,
       b2bExperience: b2b,
       priorRegistration: prior,
-      device,
       country,
       age,
     };
@@ -877,7 +873,6 @@
   buildRadioGroup("role-options", "role", S.roles);
   buildRadioGroup("b2b-options", "b2b", S.b2bExperience);
   buildRadioGroup("prior-options", "prior", S.priorRegistration);
-  buildRadioGroup("device-options", "device", S.devices);
   buildRadioGroup("age-options", "age", S.ages);
   setProgress(1);
 
