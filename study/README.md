@@ -1,43 +1,31 @@
-# AB/BA study harness
+# Recording & timing helper (Form-first)
 
-Self-serve remote study app: consent → screen share → timed Design 1 → SUS → timed Design 2 → SUS → download recording + JSON → comparative questions.
+Use with the Google Form as the main questionnaire.
 
-## Live URL
+**Helper:** https://majakle.github.io/partner-access-redesign/study/  
+**Form:** https://docs.google.com/forms/d/e/1FAIpQLSeXeWUYzFARmml6SxdrWYBA78pfs4-ltLulygOXVXgUJoUO_g/viewform
 
-https://majakle.github.io/partner-access-redesign/study/
+## What this page does
+
+1. Screen share (Entire screen)  
+2. Open Version 1 → auto timer → Finished  
+3. Reminds you to complete SUS in the Form  
+4. Open Version 2 → timer → Finished  
+5. Download `*_recording.webm` + `*_times.json`
+
+No SUS or comparative questions here — those stay in the Form.
 
 ## Local preview
 
 ```bash
-cd ab-ba-study/harness
-python3 -m http.server 8766
+cd ab-ba-study/harness && python3 -m http.server 8766
 ```
 
-Open http://127.0.0.1:8766/ (screen capture requires a secure context: localhost is OK).
-
-## Participant flow
-
-1. Enter participant ID + consents  
-2. Allow screen share — choose **Entire screen**  
-3. Open Design 1 (timer starts) → finish → 10-item SUS  
-4. Open Design 2 → finish → SUS  
-5. Download `Pxx_recording.webm` and `Pxx_results.json`  
-6. Answer 3 comparative questions + background  
-7. Upload both files to your Google Drive / Form
-
-## Order
-
-Odd last digit of ID → **AB** (baseline then redesign). Even → **BA**. Codes `A`/`B` are only in the JSON, not shown as “old/new”.
+Optional query: `?pid=P21&order=AB`
 
 ## Deploy
 
-Copy this folder’s files into the Pages repo at `study/`:
-
 ```bash
 cp -R ab-ba-study/harness/* mockups/study/
-cd mockups && git add study && git commit -m "Add AB/BA study harness" && git push
+cd mockups && git add study && git commit -m "Slim study helper for Form-first AB/BA" && git push
 ```
-
-## Browser
-
-Prefer **Chrome** or **Edge**. Safari MediaRecorder support is limited.
