@@ -647,10 +647,6 @@
       Date.now().toString(36).toUpperCase().slice(-6) +
       Math.floor(Math.random() * 90 + 10);
     assignOrder();
-    $("order-label").textContent =
-      state.order === "AB"
-        ? "Version A first, then Version B"
-        : "Version B first, then Version A";
     go("step-share", 2);
   });
 
