@@ -394,3 +394,42 @@ textarea {
   border-radius: var(--radius);
   margin-left: 0.35rem;
 }
+
+.version-ref {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+  margin: 0 0 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .version-ref {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.version-ref-card {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow: hidden;
+}
+
+.version-ref-card figcaption {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--line);
+  background: #fafafa;
+}
+
+.version-ref-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: cover;
+  object-position: top center;
+  background: #f5f5f5;
+}
