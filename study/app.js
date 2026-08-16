@@ -52,13 +52,6 @@
     return el ? el.value : null;
   }
 
-  function formatTime(ms) {
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    return String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0");
-  }
-
   function scoreSUS(susMap) {
     // ratings 1..5; odd items (1,3,5,7,9): rating-1; even: 5-rating; * 2.5
     let sum = 0;
@@ -232,12 +225,9 @@
       .forEach((r) => (r.checked = false));
     $("btn-finish-task").disabled = true;
     hide($("task-error"));
-    hide($("timer-auto-msg"));
     hide($("share-error"));
     hide($("share-ok"));
     hide($("form-open-status"));
-    stopTimerDisplayOnly();
-    $("timer-display").textContent = "00:00";
     state.timerStartedAt = null;
     state.timerAccumMs = 0;
     state.taskAutoFinished = false;
@@ -263,7 +253,6 @@
         // Leave form tab open briefly so they can read success; do not force-close here
       }
     } catch (_) {}
-    hide($("timer-auto-msg"));
     hide($("share-ok"));
     hide($("form-open-status"));
     hide($("rec-indicator"));
@@ -381,22 +370,9 @@
     hide($("sus-error"));
   }
 
-  function stopTimerDisplayOnly() {
-    if (state.timerInterval) {
-      clearInterval(state.timerInterval);
-      state.timerInterval = null;
-    }
-  }
-
   function startTimer() {
     if (state.timerStartedAt) return;
     state.timerStartedAt = performance.now();
-    stopTimerDisplayOnly();
-    state.timerInterval = setInterval(() => {
-      const elapsed =
-        state.timerAccumMs + (performance.now() - state.timerStartedAt);
-      $("timer-display").textContent = formatTime(elapsed);
-    }, 250);
   }
 
   function stopTimer() {
@@ -404,8 +380,6 @@
       state.timerAccumMs += performance.now() - state.timerStartedAt;
       state.timerStartedAt = null;
     }
-    stopTimerDisplayOnly();
-    $("timer-display").textContent = formatTime(state.timerAccumMs);
     return Math.round(state.timerAccumMs);
   }
 
@@ -682,7 +656,7 @@
     }
     if (!state.timerStartedAt && state.timerAccumMs === 0 && !state.taskAutoFinished) {
       $("task-error").textContent =
-        "Please open the form (starts the timer) before continuing.";
+        "Please open the form before continuing.";
       show($("task-error"));
       return;
     }
