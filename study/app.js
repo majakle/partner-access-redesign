@@ -248,16 +248,27 @@
     if (state.taskAutoFinished) return;
     if (!state.timerStartedAt && state.timerAccumMs === 0) return;
     state.taskAutoFinished = true;
-    stopTimer();
-    stopRecording(state.recordingVersion || currentVersion());
-    const yes = document.querySelector(
-      'input[name="task-complete"][value="Yes"]'
-    );
-    if (yes) {
-      yes.checked = true;
-      $("btn-finish-task").disabled = false;
-    }
-    show($("timer-auto-msg"));
+    // Go straight to SUS so the visible task time cannot bias ratings
+    finishCurrentTaskAndGoToSUS("Yes");
+  }
+
+  async function finishCurrentTaskAndGoToSUS(completedValue) {
+    const v = currentVersion();
+    const ms = stopTimer();
+    await stopRecording(v);
+    state.versions[v].completed = completedValue;
+    state.versions[v].taskTimeMs = ms;
+    try {
+      if (state.formWindow && !state.formWindow.closed) {
+        // Leave form tab open briefly so they can read success; do not force-close here
+      }
+    } catch (_) {}
+    hide($("timer-auto-msg"));
+    hide($("share-ok"));
+    hide($("form-open-status"));
+    hide($("rec-indicator"));
+    prepareSUSUI();
+    go("step-sus", state.seqIndex === 0 ? 4 : 6);
   }
 
   function shareHelpText(err) {
@@ -669,23 +680,15 @@
       show($("task-error"));
       return;
     }
-    if (!state.timerStartedAt && state.timerAccumMs === 0) {
+    if (!state.timerStartedAt && state.timerAccumMs === 0 && !state.taskAutoFinished) {
       $("task-error").textContent =
         "Please open the form (starts the timer) before continuing.";
       show($("task-error"));
       return;
     }
-    const v = currentVersion();
-    const ms = stopTimer();
-    await stopRecording(v);
-    state.versions[v].completed = done;
-    state.versions[v].taskTimeMs = ms;
-    try {
-      if (state.formWindow && !state.formWindow.closed) state.formWindow.close();
-    } catch (_) {}
-    state.formWindow = null;
-    prepareSUSUI();
-    go("step-sus", state.seqIndex === 0 ? 4 : 6);
+    if (state.taskAutoFinished) return;
+    state.taskAutoFinished = true;
+    await finishCurrentTaskAndGoToSUS(done);
   });
 
   window.addEventListener("message", (event) => {
