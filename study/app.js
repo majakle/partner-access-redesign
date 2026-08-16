@@ -545,7 +545,7 @@
 
   function buildResults() {
     return {
-      study: "AB/BA B2B registration usability",
+      study: "AB/BA business to business registration usability",
       participantId: state.participantId,
       order: state.order,
       sequence: state.sequence,
