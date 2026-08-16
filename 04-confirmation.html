@@ -69,6 +69,11 @@
           >
             Return to the evaluation
           </button>
+          <p id="return-hint" class="lede hidden" style="margin-top: 0.75rem">
+            You can read this page, then return. This tab will go back to the
+            evaluation automatically in a few seconds, or click the button when
+            you are ready.
+          </p>
         </div>
       </section>
     </main>
@@ -79,7 +84,9 @@
     <script src="mockups-nav.js"></script>
     <script>
       (function () {
-        function notifyStudyAndReturn() {
+        var RETURN_DELAY_MS = 8000;
+
+        function notifyStudy() {
           var msg = { type: "abba-task-complete", source: "redesign" };
           try {
             if (window.parent && window.parent !== window) {
@@ -87,12 +94,20 @@
             }
             if (window.opener && !window.opener.closed) {
               window.opener.postMessage(msg, "*");
+            }
+          } catch (e) {}
+        }
+
+        function returnToStudy() {
+          notifyStudy();
+          try {
+            if (window.opener && !window.opener.closed) {
               try {
                 window.opener.focus();
               } catch (e) {}
               setTimeout(function () {
                 window.close();
-              }, 250);
+              }, 200);
               return true;
             }
           } catch (e) {}
@@ -101,21 +116,23 @@
 
         var fromStudy = !!(window.opener && !window.opener.closed);
         if (fromStudy) {
+          notifyStudy();
           var home = document.getElementById("btn-back-home");
           var ret = document.getElementById("btn-return-study");
+          var hint = document.getElementById("return-hint");
           if (home) home.classList.add("hidden");
           if (ret) {
             ret.classList.remove("hidden");
             ret.addEventListener("click", function () {
-              notifyStudyAndReturn();
+              returnToStudy();
             });
           }
-          // Auto-return: closing this tab reveals the evaluation tab
+          if (hint) hint.classList.remove("hidden");
           setTimeout(function () {
-            notifyStudyAndReturn();
-          }, 600);
+            returnToStudy();
+          }, RETURN_DELAY_MS);
         } else {
-          notifyStudyAndReturn();
+          notifyStudy();
         }
       })();
     </script>
