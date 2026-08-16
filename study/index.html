@@ -152,30 +152,28 @@
         </button>
       </section>
 
-      <!-- 2 Screen share -->
+      <!-- 2 Recording instructions -->
       <section id="step-share" class="step hidden" data-step="2">
-        <h1>Allow screen recording</h1>
+        <h1>How screen recording works</h1>
         <div class="card prose">
           <p>
-            Click the button below. In the browser dialog, choose
-            <strong>Chrome Tab</strong> (or “This Tab” / “A tab”) and select
-            <strong>this study tab</strong> — not your entire screen and not
-            another window. That way only the registration forms are recorded,
-            not your whole desktop.
+            Each registration form opens in a <strong>new browser tab</strong>.
+            When a form opens, your browser will ask what to share. Choose
+            <strong>Chrome Tab</strong> (or “A tab”), then select the
+            <strong>form tab that just opened</strong> — not this study page and
+            not your entire screen. That way only the registration flow is
+            recorded.
+          </p>
+          <p>
+            You will share once for Version A and once for Version B. Keep this
+            study tab open for the timer and questionnaires.
           </p>
           <p>
             Your assigned order for this session:
             <strong id="order-label">—</strong>
           </p>
         </div>
-        <button type="button" class="btn primary" id="btn-start-share">
-          Share this tab to start recording
-        </button>
-        <p id="share-error" class="error hidden"></p>
-        <p id="share-ok" class="ok hidden">
-          Recording this tab. You can continue.
-        </p>
-        <button type="button" class="btn primary hidden" id="btn-share-next">
+        <button type="button" class="btn primary" id="btn-share-next">
           Start first registration task
         </button>
       </section>
@@ -191,22 +189,23 @@
             a B2B ordering portal to order furniture.
           </p>
           <p>
-            Complete the form below
+            Complete the form in the new tab
             (<strong>Version <span class="task-ver">A</span></strong
             >). Use only the fictional test information. Do not enter real
             personal or company information.
           </p>
           <p>
-            Click <strong>Load form &amp; start timer</strong> to begin. The
+            Click <strong>Open form &amp; start timer</strong>. The form opens in
+            a new tab; then share <strong>that form tab</strong> when asked. The
             timer stops automatically when you reach the confirmation / success
-            screen.
+            screen. Return here afterward.
           </p>
         </div>
 
-        <div class="layout-task layout-task--iframe">
+        <div class="layout-task">
           <aside class="card test-data">
             <h2>Fictional test information</h2>
-            <p class="hint">Use only these values.</p>
+            <p class="hint">Use only these values (keep this tab open).</p>
             <dl id="test-data-list"></dl>
             <p id="task-hint" class="hint"></p>
 
@@ -217,10 +216,16 @@
               >
             </p>
             <p id="timer-auto-msg" class="ok hidden">
-              Finished screen detected — timer stopped.
+              Finished screen detected — timer stopped. You can return here and
+              continue.
+            </p>
+            <p id="form-open-status" class="hint hidden" aria-live="polite"></p>
+            <p id="share-error" class="error hidden"></p>
+            <p id="share-ok" class="ok hidden">
+              Recording the form tab. Complete the form, then return here.
             </p>
             <button type="button" class="btn primary" id="btn-open-version">
-              Load form &amp; start timer
+              Open form &amp; start timer
             </button>
 
             <fieldset class="fieldset">
@@ -242,19 +247,6 @@
             </button>
             <p id="task-error" class="error hidden"></p>
           </aside>
-
-          <div class="card frame-card">
-            <iframe
-              id="form-frame"
-              title="Registration form"
-              class="form-frame"
-              src="about:blank"
-            ></iframe>
-            <p id="frame-placeholder" class="hint frame-placeholder">
-              The registration form will appear here after you click
-              <strong>Load form &amp; start timer</strong>.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -279,12 +271,12 @@
 
       <!-- 7 Stop recording / download prep -->
       <section id="step-stop-rec" class="step hidden" data-step="7">
-        <h1>Recording complete</h1>
+        <h1>Form recordings complete</h1>
         <div class="card prose">
           <p>
-            Screen recording has stopped. Next you will answer a few comparative
-            questions, then download your results and recording for the
-            researcher.
+            Both registration recordings have stopped. Next you will answer a
+            few comparative questions, then your results and the two form
+            recordings will be sent to the researcher.
           </p>
         </div>
         <button type="button" class="btn primary" id="btn-after-stop">
@@ -412,9 +404,9 @@
         <h1>Sending your results</h1>
         <div class="card prose">
           <p>
-            Your answers and screen recording are being uploaded automatically to
-            the researcher’s Google Drive folder. You can also download a copy
-            below if you want a backup.
+            Your answers and the Version A / Version B form recordings are being
+            uploaded automatically to the researcher’s Google Drive folder. You
+            can also download a copy below if you want a backup.
           </p>
           <p id="download-status" class="hint"></p>
           <p id="upload-status" class="hint" aria-live="polite"></p>
@@ -427,7 +419,7 @@
             Download results JSON
           </button>
           <button type="button" class="btn" id="btn-dl-video">
-            Download recording
+            Download form recordings
           </button>
           <a class="btn" id="btn-mailto" href="#">Email researcher</a>
         </div>
@@ -447,7 +439,7 @@
         <div class="card prose">
           <p>
             Thank you for participating. If upload did not succeed, please
-            download and email the JSON and recording to
+            download and email the JSON and both form recordings to
             <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>.
           </p>
           <div class="btn-row">
@@ -455,7 +447,7 @@
               Download results JSON again
             </button>
             <button type="button" class="btn" id="btn-dl-video-again">
-              Download recording again
+              Download form recordings again
             </button>
           </div>
         </div>

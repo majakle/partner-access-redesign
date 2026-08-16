@@ -23,4 +23,6 @@ endpoint: "https://script.google.com/macros/s/XXXX/exec",
 
 ## Test
 
-Open the study app → complete a short session → you should see new `_results.json` and `_recording.webm` in that folder.
+Open the study app → complete a short session → you should see new `_results.json` plus `_VersionA_recording.webm` and `_VersionB_recording.webm` in that folder.
+
+If you already deployed an older Code.gs, create a **new deployment** (or “Manage deployments → Edit → Version: New”) after pasting the updated script so multi-video upload works.

@@ -15,13 +15,25 @@
     stream: null,
     recorder: null,
     chunks: [],
-    recordingBlob: null,
     recordingMime: "video/webm",
-    iframePoll: null,
+    recordingVersion: null,
+    formWindow: null,
     taskAutoFinished: false,
     versions: {
-      A: { completed: null, taskTimeMs: 0, sus: {}, susScore: null },
-      B: { completed: null, taskTimeMs: 0, sus: {}, susScore: null },
+      A: {
+        completed: null,
+        taskTimeMs: 0,
+        sus: {},
+        susScore: null,
+        recordingBlob: null,
+      },
+      B: {
+        completed: null,
+        taskTimeMs: 0,
+        sus: {},
+        susScore: null,
+        recordingBlob: null,
+      },
     },
     comparative: {},
     background: {},
@@ -211,7 +223,7 @@
     document.querySelectorAll(".task-ver").forEach((el) => {
       el.textContent = v;
     });
-    $("btn-open-version").textContent = "Load form & start timer";
+    $("btn-open-version").textContent = "Open form & start timer";
     $("btn-open-version").disabled = false;
     $("task-hint").textContent = S.hints[v] || "";
     document
@@ -220,22 +232,14 @@
     $("btn-finish-task").disabled = true;
     hide($("task-error"));
     hide($("timer-auto-msg"));
+    hide($("share-error"));
+    hide($("share-ok"));
+    hide($("form-open-status"));
     stopTimerDisplayOnly();
-    stopIframePoll();
     $("timer-display").textContent = "00:00";
     state.timerStartedAt = null;
     state.timerAccumMs = 0;
     state.taskAutoFinished = false;
-    const frame = $("form-frame");
-    frame.src = "about:blank";
-    show($("frame-placeholder"));
-  }
-
-  function stopIframePoll() {
-    if (state.iframePoll) {
-      clearInterval(state.iframePoll);
-      state.iframePoll = null;
-    }
   }
 
   function onTaskAutoComplete() {
@@ -243,7 +247,7 @@
     if (!state.timerStartedAt && state.timerAccumMs === 0) return;
     state.taskAutoFinished = true;
     stopTimer();
-    stopIframePoll();
+    stopRecording(state.recordingVersion || currentVersion());
     const yes = document.querySelector(
       'input[name="task-complete"][value="Yes"]'
     );
@@ -254,35 +258,44 @@
     show($("timer-auto-msg"));
   }
 
-  function startIframePoll() {
-    stopIframePoll();
-    state.iframePoll = setInterval(() => {
-      const frame = $("form-frame");
-      try {
-        const href = frame.contentWindow.location.href || "";
-        if (/04-confirmation\.html/i.test(href)) {
-          onTaskAutoComplete();
-        }
-      } catch (_) {
-        // cross-origin (Version A) — rely on postMessage
-      }
-    }, 600);
-  }
-
-  function loadFormAndStartTimer() {
+  async function loadFormAndStartTimer() {
     const v = currentVersion();
-    const frame = $("form-frame");
-    hide($("frame-placeholder"));
-    frame.classList.add("is-loading");
-    frame.src = S.urls[v];
-    frame.onload = () => {
-      frame.classList.remove("is-loading");
-      // Version A opens login; try to open signup if same API available — can't cross-origin.
-      // URL already has ?signup=yes for A.
-    };
+    hide($("task-error"));
+    hide($("share-error"));
+    hide($("share-ok"));
+
+    const win = window.open(S.urls[v], "abba-form-" + v);
+    if (!win) {
+      $("task-error").textContent =
+        "Pop-up blocked. Allow pop-ups for this site, then try again.";
+      show($("task-error"));
+      return;
+    }
+    state.formWindow = win;
+
+    const status = $("form-open-status");
+    if (status) {
+      status.textContent =
+        "Form opened in a new tab. In the share dialog, choose Chrome Tab → Version " +
+        v +
+        " form tab (not this study page).";
+      show(status);
+    }
+
     startTimer();
-    startIframePoll();
     $("btn-open-version").disabled = true;
+
+    try {
+      await startFormRecording(v);
+      show($("share-ok"));
+    } catch (err) {
+      $("share-error").textContent =
+        "Screen share was cancelled or blocked. You can still complete the form; try Open form again if you need a recording, or continue without one.";
+      show($("share-error"));
+      // Allow retry of share without resetting timer / form
+      $("btn-open-version").disabled = false;
+      $("btn-open-version").textContent = "Share form tab to record";
+    }
   }
 
   function prepareSUSUI() {
@@ -320,66 +333,62 @@
     return Math.round(state.timerAccumMs);
   }
 
-  async function startRecording() {
-    hide($("share-error"));
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          frameRate: 15,
-          displaySurface: "browser",
-        },
-        audio: false,
-        // Chromium: prefer sharing this study tab only (forms run inside it)
-        preferCurrentTab: true,
-        selfBrowserSurface: "include",
-        surfaceSwitching: "exclude",
-        systemAudio: "exclude",
-      });
-      state.stream = stream;
-      state.chunks = [];
+  async function startFormRecording(version) {
+    // Allow a new recording after a previous stop
+    state._stoppingPromise = null;
+    state.recordingVersion = version;
+    state.chunks = [];
 
-      let mime = "video/webm;codecs=vp9";
-      if (!MediaRecorder.isTypeSupported(mime)) mime = "video/webm";
-      if (!MediaRecorder.isTypeSupported(mime)) mime = "";
-      state.recordingMime = mime || "video/webm";
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        frameRate: 15,
+        displaySurface: "browser",
+      },
+      audio: false,
+      // Do NOT prefer current (study) tab — participant must pick the form tab
+      selfBrowserSurface: "include",
+      surfaceSwitching: "include",
+      systemAudio: "exclude",
+    });
+    state.stream = stream;
 
-      const recorder = new MediaRecorder(
-        stream,
-        mime ? { mimeType: mime, videoBitsPerSecond: 600_000 } : undefined
-      );
-      state.recorder = recorder;
-      state.chunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size) state.chunks.push(e.data);
-      };
-      recorder.onstop = null; // handled in stopRecording()
-      stream.getVideoTracks()[0].addEventListener("ended", () => {
-        if (state.recorder && state.recorder.state === "recording") {
-          stopRecording();
-        }
-      });
-      recorder.start(1000);
-      show($("rec-indicator"));
-      show($("share-ok"));
-      show($("btn-share-next"));
-      $("btn-start-share").disabled = true;
-    } catch (err) {
-      $("share-error").textContent =
-        "Sharing was blocked or cancelled. Please try again and choose this browser tab (not your entire screen).";
-      show($("share-error"));
-    }
+    let mime = "video/webm;codecs=vp9";
+    if (!MediaRecorder.isTypeSupported(mime)) mime = "video/webm";
+    if (!MediaRecorder.isTypeSupported(mime)) mime = "";
+    state.recordingMime = mime || "video/webm";
+
+    const recorder = new MediaRecorder(
+      stream,
+      mime ? { mimeType: mime, videoBitsPerSecond: 600_000 } : undefined
+    );
+    state.recorder = recorder;
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size) state.chunks.push(e.data);
+    };
+    recorder.onstop = null;
+    stream.getVideoTracks()[0].addEventListener("ended", () => {
+      if (state.recorder && state.recorder.state === "recording") {
+        stopRecording(version);
+      }
+    });
+    recorder.start(1000);
+    show($("rec-indicator"));
   }
 
-  function finalizeRecordingBlob() {
-    if ((!state.recordingBlob || state.recordingBlob.size === 0) && state.chunks.length) {
-      state.recordingBlob = new Blob(state.chunks, {
+  function finalizeVersionBlob(version) {
+    const v = version || state.recordingVersion;
+    if (!v) return null;
+    const existing = state.versions[v].recordingBlob;
+    if ((!existing || !existing.size) && state.chunks.length) {
+      state.versions[v].recordingBlob = new Blob(state.chunks, {
         type: state.recordingMime || "video/webm",
       });
     }
-    return state.recordingBlob;
+    return state.versions[v].recordingBlob;
   }
 
-  function stopRecording() {
+  function stopRecording(version) {
+    const v = version || state.recordingVersion || currentVersion();
     if (state._stoppingPromise) return state._stoppingPromise;
 
     state._stoppingPromise = new Promise((resolve) => {
@@ -387,15 +396,18 @@
       const finish = () => {
         if (settled) return;
         settled = true;
-        // Allow a final ondataavailable after stop
         setTimeout(() => {
-          finalizeRecordingBlob();
+          const blob = finalizeVersionBlob(v);
           if (state.stream) {
             state.stream.getTracks().forEach((t) => t.stop());
             state.stream = null;
           }
+          state.recorder = null;
+          state.chunks = [];
+          state.recordingVersion = null;
+          state._stoppingPromise = null;
           hide($("rec-indicator"));
-          resolve(state.recordingBlob);
+          resolve(blob);
         }, 120);
       };
 
@@ -457,16 +469,20 @@
     downloadBlob(blob, fileBase() + "_results.json");
   }
 
-  function downloadVideo() {
-    finalizeRecordingBlob();
-    if (!state.recordingBlob || !state.recordingBlob.size) {
+  function downloadVideos() {
+    let any = false;
+    ["A", "B"].forEach((v) => {
+      const blob = state.versions[v].recordingBlob;
+      if (!blob || !blob.size) return;
+      any = true;
+      const ext = (blob.type || "").includes("mp4") ? "mp4" : "webm";
+      downloadBlob(blob, fileBase() + "_Version" + v + "_recording." + ext);
+    });
+    if (!any) {
       alert(
-        "No recording is available yet. Make sure you shared this tab and completed both tasks."
+        "No form recordings are available. Make sure you shared each form’s Chrome tab when prompted."
       );
-      return;
     }
-    const ext = (state.recordingBlob.type || "").includes("mp4") ? "mp4" : "webm";
-    downloadBlob(state.recordingBlob, fileBase() + "_recording." + ext);
   }
 
   function collectSUS() {
@@ -489,8 +505,25 @@
     );
   }
 
+  function versionPayload(v) {
+    const ver = state.versions[v];
+    const blob = ver.recordingBlob;
+    return {
+      completed: ver.completed,
+      taskTimeMs: ver.taskTimeMs,
+      sus: { ...ver.sus },
+      susScore: ver.susScore,
+      recording: blob
+        ? {
+            mimeType: blob.type,
+            bytes: blob.size,
+            filename: fileBase() + "_Version" + v + "_recording.webm",
+          }
+        : null,
+    };
+  }
+
   function buildResults() {
-    finalizeRecordingBlob();
     return {
       study: "AB/BA B2B registration usability",
       participantId: state.participantId,
@@ -500,20 +533,13 @@
       startedAt: state.startedAt,
       finishedAt: state.finishedAt || new Date().toISOString(),
       versions: {
-        A: { ...state.versions.A },
-        B: { ...state.versions.B },
+        A: versionPayload("A"),
+        B: versionPayload("B"),
       },
       comparative: { ...state.comparative },
       background: { ...state.background },
       uploadLink: state.uploadLink || null,
       driveUpload: state.driveUpload || null,
-      recording: state.recordingBlob
-        ? {
-            mimeType: state.recordingBlob.type,
-            bytes: state.recordingBlob.size,
-            filename: fileBase() + "_recording.webm",
-          }
-        : null,
     };
   }
 
@@ -526,7 +552,9 @@
         fileBase() +
         "_results.json\n2) " +
         fileBase() +
-        "_recording.webm\n\nParticipant ID: " +
+        "_VersionA_recording.webm\n3) " +
+        fileBase() +
+        "_VersionB_recording.webm\n\nParticipant ID: " +
         state.participantId +
         "\nOrder: " +
         state.order +
@@ -544,8 +572,28 @@
       downloadJSON();
     } catch (_) {}
     try {
-      if (state.recordingBlob && state.recordingBlob.size) downloadVideo();
+      downloadVideos();
     } catch (_) {}
+  }
+
+  async function encodeVideosForUpload(cfg) {
+    const max = cfg.maxVideoBytes || 28 * 1024 * 1024;
+    const videos = [];
+    const skipped = [];
+    for (const v of ["A", "B"]) {
+      const blob = state.versions[v].recordingBlob;
+      if (!blob || !blob.size) continue;
+      if (blob.size > max) {
+        skipped.push(v);
+        continue;
+      }
+      videos.push({
+        version: v,
+        base64: await blobToBase64(blob),
+        mime: blob.type || "video/webm",
+      });
+    }
+    return { videos: videos, skipped: skipped };
   }
 
   async function uploadToDrive() {
@@ -568,24 +616,22 @@
       return { ok: false, reason: "no-endpoint" };
     }
 
-    finalizeRecordingBlob();
-    const results = buildResults();
-    const resultsJson = JSON.stringify(results, null, 2);
-
-    setStatus("Uploading results to Google Drive…");
-
-    let videoBase64 = null;
-    let videoSkipped = false;
-    if (state.recordingBlob && state.recordingBlob.size) {
-      if (state.recordingBlob.size > (cfg.maxVideoBytes || 28 * 1024 * 1024)) {
-        videoSkipped = true;
-        setStatus(
-          "Results JSON uploading… Video is large; it will download so you can add it to Drive manually."
-        );
-      } else {
-        setStatus("Preparing video for upload…");
-        videoBase64 = await blobToBase64(state.recordingBlob);
-      }
+    const resultsJson = JSON.stringify(buildResults(), null, 2);
+    setStatus("Preparing form recordings for upload…");
+    const { videos, skipped } = await encodeVideosForUpload(cfg);
+    if (skipped.length) {
+      setStatus(
+        "Some videos are large and will download locally: Version " +
+          skipped.join(", ") +
+          ". Uploading JSON and remaining videos…"
+      );
+      skipped.forEach((v) => {
+        try {
+          const blob = state.versions[v].recordingBlob;
+          const ext = (blob.type || "").includes("mp4") ? "mp4" : "webm";
+          downloadBlob(blob, fileBase() + "_Version" + v + "_recording." + ext);
+        } catch (_) {}
+      });
     }
 
     setStatus("Sending to Google Drive…");
@@ -594,14 +640,12 @@
       participantId: state.participantId,
       order: state.order,
       resultsJson: resultsJson,
-      videoBase64: videoBase64,
-      videoMime: state.recordingBlob ? state.recordingBlob.type : null,
+      videos: videos,
     };
 
     try {
       const res = await fetch(cfg.endpoint, {
         method: "POST",
-        // text/plain avoids CORS preflight with Apps Script
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
         redirect: "follow",
@@ -619,19 +663,16 @@
       let msg =
         "Uploaded to Google Drive. JSON: " +
         (data.json && data.json.name ? data.json.name : "saved");
-      if (data.video && data.video.name) {
-        msg += " · Video: " + data.video.name;
-      } else if (videoSkipped || !state.recordingBlob) {
+      const uploaded = data.videos || (data.video ? [data.video] : []);
+      if (uploaded.length) {
         msg +=
-          " · Video not uploaded (too large or missing) — use Download recording.";
-        if (state.recordingBlob) {
-          try {
-            downloadVideo();
-          } catch (_) {}
-        }
+          " · Videos: " +
+          uploaded.map((u) => u.name || "recording").join(", ");
+      } else if (!videos.length) {
+        msg += " · No form videos uploaded — use Download form recordings.";
       }
       setStatus(msg, false);
-      return { ok: true, data: data, videoSkipped: videoSkipped };
+      return { ok: true, data: data };
     } catch (err) {
       setStatus(
         "Automatic Drive upload failed (" +
@@ -639,12 +680,7 @@
           "). Downloading files instead — please email them or add them to the Drive folder.",
         true
       );
-      try {
-        downloadJSON();
-      } catch (_) {}
-      try {
-        if (state.recordingBlob) downloadVideo();
-      } catch (_) {}
+      fallbackDownloadBoth();
       return { ok: false, error: err };
     }
   }
@@ -685,8 +721,6 @@
     go("step-share", 2);
   });
 
-  $("btn-start-share").addEventListener("click", () => startRecording());
-
   $("btn-share-next").addEventListener("click", () => {
     state.seqIndex = 0;
     prepareTaskUI();
@@ -697,7 +731,7 @@
     loadFormAndStartTimer();
   });
 
-  $("btn-finish-task").addEventListener("click", () => {
+  $("btn-finish-task").addEventListener("click", async () => {
     hide($("task-error"));
     const done = radioValue("task-complete");
     if (!done) {
@@ -708,17 +742,19 @@
     }
     if (!state.timerStartedAt && state.timerAccumMs === 0) {
       $("task-error").textContent =
-        "Please load the form (starts the timer) before continuing.";
+        "Please open the form (starts the timer) before continuing.";
       show($("task-error"));
       return;
     }
     const v = currentVersion();
     const ms = stopTimer();
-    stopIframePoll();
+    await stopRecording(v);
     state.versions[v].completed = done;
     state.versions[v].taskTimeMs = ms;
-    // Clear iframe to free resources
-    $("form-frame").src = "about:blank";
+    try {
+      if (state.formWindow && !state.formWindow.closed) state.formWindow.close();
+    } catch (_) {}
+    state.formWindow = null;
     prepareSUSUI();
     go("step-sus", state.seqIndex === 0 ? 4 : 6);
   });
@@ -795,7 +831,6 @@
     }
     state.background = { role, b2bExperience: b2b, priorRegistration: prior, device, country, age };
     state.finishedAt = new Date().toISOString();
-    finalizeRecordingBlob();
     updateMailto();
     $("download-status").textContent =
       "Participant " +
@@ -807,14 +842,13 @@
       " · SUS B: " +
       state.versions.B.susScore;
     go("step-download", 9);
-    // Auto-upload to Drive (same user gesture; no setTimeout so downloads still work as fallback)
     uploadToDrive();
   });
 
   $("btn-dl-json").addEventListener("click", downloadJSON);
-  $("btn-dl-video").addEventListener("click", downloadVideo);
+  $("btn-dl-video").addEventListener("click", downloadVideos);
   $("btn-dl-json-again").addEventListener("click", downloadJSON);
-  $("btn-dl-video-again").addEventListener("click", downloadVideo);
+  $("btn-dl-video-again").addEventListener("click", downloadVideos);
   const btnUpload = $("btn-upload-drive");
   if (btnUpload) {
     btnUpload.addEventListener("click", () => uploadToDrive());
