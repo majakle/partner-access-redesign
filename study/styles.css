@@ -9,7 +9,6 @@
   --err: #9f1239;
   --rec: #b91c1c;
   --font: "Segoe UI", system-ui, sans-serif;
-  --max: 720px;
 }
 
 *,
@@ -93,25 +92,6 @@ a {
   color: var(--muted);
   margin: 0 0 1.25rem;
   max-width: 40rem;
-}
-
-.banner {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  margin: 0 0 1.25rem;
-  font-size: 0.95rem;
-}
-
-.banner a {
-  font-weight: 650;
-}
-
-a.btn {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
 }
 
 .card {
