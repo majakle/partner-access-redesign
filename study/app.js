@@ -26,6 +26,8 @@
     comparative: {},
     background: {},
     uploadLink: "",
+    driveUpload: null,
+    _stoppingPromise: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -343,22 +345,17 @@
 
       const recorder = new MediaRecorder(
         stream,
-        mime ? { mimeType: mime, videoBitsPerSecond: 1_200_000 } : undefined
+        mime ? { mimeType: mime, videoBitsPerSecond: 600_000 } : undefined
       );
       state.recorder = recorder;
+      state.chunks = [];
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size) state.chunks.push(e.data);
       };
-      recorder.onstop = () => {
-        state.recordingBlob = new Blob(state.chunks, {
-          type: state.recordingMime,
-        });
-        stream.getTracks().forEach((t) => t.stop());
-        hide($("rec-indicator"));
-      };
+      recorder.onstop = null; // handled in stopRecording()
       stream.getVideoTracks()[0].addEventListener("ended", () => {
         if (state.recorder && state.recorder.state === "recording") {
-          state.recorder.stop();
+          stopRecording();
         }
       });
       recorder.start(1000);
@@ -373,15 +370,103 @@
     }
   }
 
+  function finalizeRecordingBlob() {
+    if ((!state.recordingBlob || state.recordingBlob.size === 0) && state.chunks.length) {
+      state.recordingBlob = new Blob(state.chunks, {
+        type: state.recordingMime || "video/webm",
+      });
+    }
+    return state.recordingBlob;
+  }
+
   function stopRecording() {
-    return new Promise((resolve) => {
+    if (state._stoppingPromise) return state._stoppingPromise;
+
+    state._stoppingPromise = new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        // Allow a final ondataavailable after stop
+        setTimeout(() => {
+          finalizeRecordingBlob();
+          if (state.stream) {
+            state.stream.getTracks().forEach((t) => t.stop());
+            state.stream = null;
+          }
+          hide($("rec-indicator"));
+          resolve(state.recordingBlob);
+        }, 120);
+      };
+
       if (!state.recorder || state.recorder.state === "inactive") {
-        resolve();
+        finish();
         return;
       }
-      state.recorder.addEventListener("stop", () => resolve(), { once: true });
-      state.recorder.stop();
+
+      state.recorder.onstop = finish;
+      try {
+        state.recorder.requestData();
+      } catch (_) {}
+      try {
+        state.recorder.stop();
+      } catch (_) {
+        finish();
+      }
     });
+
+    return state._stoppingPromise;
+  }
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const s = String(reader.result || "");
+        const i = s.indexOf(",");
+        resolve(i >= 0 ? s.slice(i + 1) : s);
+      };
+      reader.onerror = () => reject(reader.error || new Error("read failed"));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function downloadBlob(blob, filename) {
+    if (!blob || !blob.size) {
+      throw new Error("Empty file");
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 2500);
+  }
+
+  function downloadJSON() {
+    const data = buildResults();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    downloadBlob(blob, fileBase() + "_results.json");
+  }
+
+  function downloadVideo() {
+    finalizeRecordingBlob();
+    if (!state.recordingBlob || !state.recordingBlob.size) {
+      alert(
+        "No recording is available yet. Make sure you shared this tab and completed both tasks."
+      );
+      return;
+    }
+    const ext = (state.recordingBlob.type || "").includes("mp4") ? "mp4" : "webm";
+    downloadBlob(state.recordingBlob, fileBase() + "_recording." + ext);
   }
 
   function collectSUS() {
@@ -394,7 +479,18 @@
     return map;
   }
 
+  function fileBase() {
+    return (
+      (state.participantId || "Pxxxx") +
+      "_" +
+      state.order +
+      "_" +
+      (state.startedAt || "").slice(0, 10)
+    );
+  }
+
   function buildResults() {
+    finalizeRecordingBlob();
     return {
       study: "AB/BA B2B registration usability",
       participantId: state.participantId,
@@ -410,6 +506,7 @@
       comparative: { ...state.comparative },
       background: { ...state.background },
       uploadLink: state.uploadLink || null,
+      driveUpload: state.driveUpload || null,
       recording: state.recordingBlob
         ? {
             mimeType: state.recordingBlob.type,
@@ -418,44 +515,6 @@
           }
         : null,
     };
-  }
-
-  function fileBase() {
-    return (
-      (state.participantId || "Pxxxx") +
-      "_" +
-      state.order +
-      "_" +
-      (state.startedAt || "").slice(0, 10)
-    );
-  }
-
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-  }
-
-  function downloadJSON() {
-    const data = buildResults();
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    downloadBlob(blob, fileBase() + "_results.json");
-  }
-
-  function downloadVideo() {
-    if (!state.recordingBlob) {
-      alert("No recording is available.");
-      return;
-    }
-    const ext = state.recordingBlob.type.includes("mp4") ? "mp4" : "webm";
-    downloadBlob(state.recordingBlob, fileBase() + "_recording." + ext);
   }
 
   function updateMailto() {
@@ -473,8 +532,121 @@
         state.order +
         "\n\nThank you."
     );
-    $("btn-mailto").href =
-      "mailto:" + S.researcherEmail + "?subject=" + subject + "&body=" + body;
+    const mail = $("btn-mailto");
+    if (mail) {
+      mail.href =
+        "mailto:" + S.researcherEmail + "?subject=" + subject + "&body=" + body;
+    }
+  }
+
+  function fallbackDownloadBoth() {
+    try {
+      downloadJSON();
+    } catch (_) {}
+    try {
+      if (state.recordingBlob && state.recordingBlob.size) downloadVideo();
+    } catch (_) {}
+  }
+
+  async function uploadToDrive() {
+    const cfg = window.STUDY_UPLOAD || {};
+    const status = $("upload-status");
+    const setStatus = (msg, isError) => {
+      if (!status) return;
+      status.textContent = msg;
+      status.classList.toggle("error", !!isError);
+      status.classList.toggle("ok", !isError);
+      show(status);
+    };
+
+    if (!cfg.endpoint) {
+      setStatus(
+        "Drive upload is not configured yet on this site. Downloading files now — please email them to the researcher.",
+        true
+      );
+      fallbackDownloadBoth();
+      return { ok: false, reason: "no-endpoint" };
+    }
+
+    finalizeRecordingBlob();
+    const results = buildResults();
+    const resultsJson = JSON.stringify(results, null, 2);
+
+    setStatus("Uploading results to Google Drive…");
+
+    let videoBase64 = null;
+    let videoSkipped = false;
+    if (state.recordingBlob && state.recordingBlob.size) {
+      if (state.recordingBlob.size > (cfg.maxVideoBytes || 28 * 1024 * 1024)) {
+        videoSkipped = true;
+        setStatus(
+          "Results JSON uploading… Video is large; it will download so you can add it to Drive manually."
+        );
+      } else {
+        setStatus("Preparing video for upload…");
+        videoBase64 = await blobToBase64(state.recordingBlob);
+      }
+    }
+
+    setStatus("Sending to Google Drive…");
+    const payload = {
+      secret: cfg.secret,
+      participantId: state.participantId,
+      order: state.order,
+      resultsJson: resultsJson,
+      videoBase64: videoBase64,
+      videoMime: state.recordingBlob ? state.recordingBlob.type : null,
+    };
+
+    try {
+      const res = await fetch(cfg.endpoint, {
+        method: "POST",
+        // text/plain avoids CORS preflight with Apps Script
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+        redirect: "follow",
+      });
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (_) {
+        throw new Error("Unexpected response from upload service");
+      }
+      if (!data.ok) throw new Error(data.error || "Upload failed");
+
+      state.driveUpload = data;
+      let msg =
+        "Uploaded to Google Drive. JSON: " +
+        (data.json && data.json.name ? data.json.name : "saved");
+      if (data.video && data.video.name) {
+        msg += " · Video: " + data.video.name;
+      } else if (videoSkipped || !state.recordingBlob) {
+        msg +=
+          " · Video not uploaded (too large or missing) — use Download recording.";
+        if (state.recordingBlob) {
+          try {
+            downloadVideo();
+          } catch (_) {}
+        }
+      }
+      setStatus(msg, false);
+      return { ok: true, data: data, videoSkipped: videoSkipped };
+    } catch (err) {
+      setStatus(
+        "Automatic Drive upload failed (" +
+          (err && err.message ? err.message : "error") +
+          "). Downloading files instead — please email them or add them to the Drive folder.",
+        true
+      );
+      try {
+        downloadJSON();
+      } catch (_) {}
+      try {
+        if (state.recordingBlob) downloadVideo();
+      } catch (_) {}
+      return { ok: false, error: err };
+    }
   }
 
   // ——— Event wiring ———
@@ -623,6 +795,7 @@
     }
     state.background = { role, b2bExperience: b2b, priorRegistration: prior, device, country, age };
     state.finishedAt = new Date().toISOString();
+    finalizeRecordingBlob();
     updateMailto();
     $("download-status").textContent =
       "Participant " +
@@ -634,22 +807,21 @@
       " · SUS B: " +
       state.versions.B.susScore;
     go("step-download", 9);
-    // Auto-download to reduce friction
-    setTimeout(() => {
-      downloadJSON();
-      if (state.recordingBlob) downloadVideo();
-    }, 400);
+    // Auto-upload to Drive (same user gesture; no setTimeout so downloads still work as fallback)
+    uploadToDrive();
   });
 
   $("btn-dl-json").addEventListener("click", downloadJSON);
   $("btn-dl-video").addEventListener("click", downloadVideo);
   $("btn-dl-json-again").addEventListener("click", downloadJSON);
   $("btn-dl-video-again").addEventListener("click", downloadVideo);
+  const btnUpload = $("btn-upload-drive");
+  if (btnUpload) {
+    btnUpload.addEventListener("click", () => uploadToDrive());
+  }
 
   $("btn-finish").addEventListener("click", () => {
     state.uploadLink = ($("upload-link").value || "").trim();
-    // Refresh JSON with upload link if provided
-    if (state.uploadLink) downloadJSON();
     go("step-done");
   });
 

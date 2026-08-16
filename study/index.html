@@ -403,41 +403,37 @@
 
         <p id="bg-error" class="error hidden"></p>
         <button type="button" class="btn primary" id="btn-background-next">
-          Continue to download results
+          Continue — send results
         </button>
       </section>
 
-      <!-- Download -->
+      <!-- Download / upload -->
       <section id="step-download" class="step hidden" data-step="10">
-        <h1>Send your results to the researcher</h1>
+        <h1>Sending your results</h1>
         <div class="card prose">
           <p>
-            Please download both files below, then email them to
-            <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>
-            (or upload them to the Google Drive folder you were given).
+            Your answers and screen recording are being uploaded automatically to
+            the researcher’s Google Drive folder. You can also download a copy
+            below if you want a backup.
           </p>
-          <ul>
-            <li>
-              <strong>Results JSON</strong> — answers, SUS scores, and task
-              times
-            </li>
-            <li><strong>Screen recording</strong> — <code>.webm</code> video</li>
-          </ul>
           <p id="download-status" class="hint"></p>
+          <p id="upload-status" class="hint" aria-live="polite"></p>
         </div>
         <div class="btn-row">
-          <button type="button" class="btn primary" id="btn-dl-json">
+          <button type="button" class="btn primary" id="btn-upload-drive">
+            Upload to Drive again
+          </button>
+          <button type="button" class="btn" id="btn-dl-json">
             Download results JSON
           </button>
-          <button type="button" class="btn primary" id="btn-dl-video">
+          <button type="button" class="btn" id="btn-dl-video">
             Download recording
           </button>
-          <a class="btn" id="btn-mailto" href="#">Open email to researcher</a>
+          <a class="btn" id="btn-mailto" href="#">Email researcher</a>
         </div>
         <label class="field">
           <span
-            >Optional: paste a Google Drive / cloud link if you uploaded the
-            files yourself</span
+            >Optional: paste a link if you uploaded files yourself</span
           >
           <input id="upload-link" type="text" placeholder="https://…" />
         </label>
@@ -450,8 +446,8 @@
         <h1>Thank you</h1>
         <div class="card prose">
           <p>
-            Thank you for participating. If you have not yet sent your files,
-            please email the JSON and recording to
+            Thank you for participating. If upload did not succeed, please
+            download and email the JSON and recording to
             <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>.
           </p>
           <div class="btn-row">
@@ -474,6 +470,7 @@
     </main>
 
     <script src="questions.js"></script>
+    <script src="config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
