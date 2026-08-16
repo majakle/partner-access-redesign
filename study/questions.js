@@ -9,8 +9,8 @@ window.STUDY = {
     B: "https://majakle.github.io/partner-access-redesign/",
   },
   hints: {
-    A: "If you see a sign-in screen first, click Create account to open the registration form.",
-    B: "Click Start partner application and complete the steps. On the company step you may search Company XY or the VAT ID.",
+    A: "After the form loads, click Create account if you see sign-in first. When the success screen appears, the timer stops automatically.",
+    B: "Click Start partner application. On the company step you may search Company or the VAT ID. When you reach the confirmation page, the timer stops automatically.",
   },
   testData: [
     ["Company name", "Company"],

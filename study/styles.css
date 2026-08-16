@@ -260,11 +260,47 @@ textarea {
   gap: 1rem;
 }
 
-@media (min-width: 800px) {
-  .layout-task {
-    grid-template-columns: 1.1fr 0.9fr;
-    align-items: start;
+@media (min-width: 960px) {
+  .layout-task--iframe {
+    grid-template-columns: minmax(240px, 300px) 1fr;
+    align-items: stretch;
   }
+}
+
+.frame-card {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  min-height: 70vh;
+}
+
+.form-frame {
+  display: block;
+  width: 100%;
+  height: min(78vh, 900px);
+  border: 0;
+  background: #fff;
+}
+
+.form-frame.is-loading {
+  opacity: 0.4;
+}
+
+.frame-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  margin: 0;
+  background: #f5f5f4;
+  pointer-events: none;
+}
+
+.frame-placeholder.hidden {
+  display: none !important;
 }
 
 .test-data h2 {

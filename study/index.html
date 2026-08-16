@@ -157,10 +157,11 @@
         <h1>Allow screen recording</h1>
         <div class="card prose">
           <p>
-            Click the button below. Your browser will ask you to share your
-            screen. Please choose <strong>Entire Screen</strong> (or the whole
-            browser window), not only this tab — otherwise Version A / Version B
-            may not appear in the recording.
+            Click the button below. In the browser dialog, choose
+            <strong>Chrome Tab</strong> (or “This Tab” / “A tab”) and select
+            <strong>this study tab</strong> — not your entire screen and not
+            another window. That way only the registration forms are recorded,
+            not your whole desktop.
           </p>
           <p>
             Your assigned order for this session:
@@ -168,10 +169,12 @@
           </p>
         </div>
         <button type="button" class="btn primary" id="btn-start-share">
-          Allow screen recording
+          Share this tab to start recording
         </button>
         <p id="share-error" class="error hidden"></p>
-        <p id="share-ok" class="ok hidden">Screen share active. You can continue.</p>
+        <p id="share-ok" class="ok hidden">
+          Recording this tab. You can continue.
+        </p>
         <button type="button" class="btn primary hidden" id="btn-share-next">
           Start first registration task
         </button>
@@ -188,43 +191,37 @@
             a B2B ordering portal to order furniture.
           </p>
           <p>
-            Your task is to complete the following registration form
+            Complete the form below
             (<strong>Version <span class="task-ver">A</span></strong
-            >).
+            >). Use only the fictional test information. Do not enter real
+            personal or company information.
           </p>
           <p>
-            Use only the fictional test information provided below. Do not enter
-            your real personal, contact, or company information.
-          </p>
-          <p>
-            While completing the task, pay attention to anything that appears
-            unclear, difficult, inconsistent, or unnecessarily time-consuming.
-            You do not need to explain aloud while working.
+            Click <strong>Load form &amp; start timer</strong> to begin. The
+            timer stops automatically when you reach the confirmation / success
+            screen.
           </p>
         </div>
 
-        <div class="layout-task">
+        <div class="layout-task layout-task--iframe">
           <aside class="card test-data">
             <h2>Fictional test information</h2>
             <p class="hint">Use only these values.</p>
             <dl id="test-data-list"></dl>
             <p id="task-hint" class="hint"></p>
-          </aside>
 
-          <div class="card task-actions">
             <p class="timer-block">
               Time:
               <span id="timer-display" class="timer" aria-live="polite"
                 >00:00</span
               >
             </p>
-            <button type="button" class="btn primary" id="btn-open-version">
-              Open Version A &amp; start timer
-            </button>
-            <p class="hint">
-              Opens in a new tab. Complete the registration there, then return
-              here.
+            <p id="timer-auto-msg" class="ok hidden">
+              Finished screen detected — timer stopped.
             </p>
+            <button type="button" class="btn primary" id="btn-open-version">
+              Load form &amp; start timer
+            </button>
 
             <fieldset class="fieldset">
               <legend>
@@ -241,9 +238,22 @@
             </fieldset>
 
             <button type="button" class="btn primary" id="btn-finish-task" disabled>
-              I finished — continue to questionnaire
+              Continue to questionnaire
             </button>
             <p id="task-error" class="error hidden"></p>
+          </aside>
+
+          <div class="card frame-card">
+            <iframe
+              id="form-frame"
+              title="Registration form"
+              class="form-frame"
+              src="about:blank"
+            ></iframe>
+            <p id="frame-placeholder" class="hint frame-placeholder">
+              The registration form will appear here after you click
+              <strong>Load form &amp; start timer</strong>.
+            </p>
           </div>
         </div>
       </section>

@@ -17,9 +17,8 @@
     chunks: [],
     recordingBlob: null,
     recordingMime: "video/webm",
-    timerInterval: null,
-    timerStartedAt: null,
-    timerAccumMs: 0,
+    iframePoll: null,
+    taskAutoFinished: false,
     versions: {
       A: { completed: null, taskTimeMs: 0, sus: {}, susScore: null },
       B: { completed: null, taskTimeMs: 0, sus: {}, susScore: null },
@@ -210,18 +209,78 @@
     document.querySelectorAll(".task-ver").forEach((el) => {
       el.textContent = v;
     });
-    $("btn-open-version").textContent =
-      "Open Version " + v + " & start timer";
+    $("btn-open-version").textContent = "Load form & start timer";
+    $("btn-open-version").disabled = false;
     $("task-hint").textContent = S.hints[v] || "";
     document
       .querySelectorAll('input[name="task-complete"]')
       .forEach((r) => (r.checked = false));
     $("btn-finish-task").disabled = true;
     hide($("task-error"));
+    hide($("timer-auto-msg"));
     stopTimerDisplayOnly();
+    stopIframePoll();
     $("timer-display").textContent = "00:00";
     state.timerStartedAt = null;
     state.timerAccumMs = 0;
+    state.taskAutoFinished = false;
+    const frame = $("form-frame");
+    frame.src = "about:blank";
+    show($("frame-placeholder"));
+  }
+
+  function stopIframePoll() {
+    if (state.iframePoll) {
+      clearInterval(state.iframePoll);
+      state.iframePoll = null;
+    }
+  }
+
+  function onTaskAutoComplete() {
+    if (state.taskAutoFinished) return;
+    if (!state.timerStartedAt && state.timerAccumMs === 0) return;
+    state.taskAutoFinished = true;
+    stopTimer();
+    stopIframePoll();
+    const yes = document.querySelector(
+      'input[name="task-complete"][value="Yes"]'
+    );
+    if (yes) {
+      yes.checked = true;
+      $("btn-finish-task").disabled = false;
+    }
+    show($("timer-auto-msg"));
+  }
+
+  function startIframePoll() {
+    stopIframePoll();
+    state.iframePoll = setInterval(() => {
+      const frame = $("form-frame");
+      try {
+        const href = frame.contentWindow.location.href || "";
+        if (/04-confirmation\.html/i.test(href)) {
+          onTaskAutoComplete();
+        }
+      } catch (_) {
+        // cross-origin (Version A) — rely on postMessage
+      }
+    }, 600);
+  }
+
+  function loadFormAndStartTimer() {
+    const v = currentVersion();
+    const frame = $("form-frame");
+    hide($("frame-placeholder"));
+    frame.classList.add("is-loading");
+    frame.src = S.urls[v];
+    frame.onload = () => {
+      frame.classList.remove("is-loading");
+      // Version A opens login; try to open signup if same API available — can't cross-origin.
+      // URL already has ?signup=yes for A.
+    };
+    startTimer();
+    startIframePoll();
+    $("btn-open-version").disabled = true;
   }
 
   function prepareSUSUI() {
@@ -263,8 +322,16 @@
     hide($("share-error"));
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: 15 },
+        video: {
+          frameRate: 15,
+          displaySurface: "browser",
+        },
         audio: false,
+        // Chromium: prefer sharing this study tab only (forms run inside it)
+        preferCurrentTab: true,
+        selfBrowserSurface: "include",
+        surfaceSwitching: "exclude",
+        systemAudio: "exclude",
       });
       state.stream = stream;
       state.chunks = [];
@@ -301,7 +368,7 @@
       $("btn-start-share").disabled = true;
     } catch (err) {
       $("share-error").textContent =
-        "Screen sharing was blocked or cancelled. Please try again and choose Entire Screen.";
+        "Sharing was blocked or cancelled. Please try again and choose this browser tab (not your entire screen).";
       show($("share-error"));
     }
   }
@@ -455,31 +522,39 @@
   });
 
   $("btn-open-version").addEventListener("click", () => {
-    const v = currentVersion();
-    window.open(S.urls[v], "_blank", "noopener,noreferrer");
-    startTimer();
+    loadFormAndStartTimer();
   });
 
   $("btn-finish-task").addEventListener("click", () => {
     hide($("task-error"));
     const done = radioValue("task-complete");
     if (!done) {
-      $("task-error").textContent = "Please indicate whether you completed the task.";
+      $("task-error").textContent =
+        "Please indicate whether you completed the task.";
       show($("task-error"));
       return;
     }
     if (!state.timerStartedAt && state.timerAccumMs === 0) {
       $("task-error").textContent =
-        "Please open the version (starts the timer) before continuing.";
+        "Please load the form (starts the timer) before continuing.";
       show($("task-error"));
       return;
     }
     const v = currentVersion();
     const ms = stopTimer();
+    stopIframePoll();
     state.versions[v].completed = done;
     state.versions[v].taskTimeMs = ms;
+    // Clear iframe to free resources
+    $("form-frame").src = "about:blank";
     prepareSUSUI();
     go("step-sus", state.seqIndex === 0 ? 4 : 6);
+  });
+
+  window.addEventListener("message", (event) => {
+    const data = event.data;
+    if (!data || data.type !== "abba-task-complete") return;
+    onTaskAutoComplete();
   });
 
   $("btn-sus-next").addEventListener("click", async () => {

@@ -68,5 +68,16 @@
       <p>© Company XYZ</p>
     </footer>
     <script src="mockups-nav.js"></script>
+    <script>
+      (function () {
+        var msg = { type: "abba-task-complete", source: "redesign" };
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(msg, "*");
+          }
+          if (window.opener) window.opener.postMessage(msg, "*");
+        } catch (e) {}
+      })();
+    </script>
   </body>
 </html>
