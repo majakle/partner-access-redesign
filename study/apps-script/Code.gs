@@ -14,15 +14,37 @@
  *    https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
  *
  * After setup, participants’ JSON + Version A/B videos go into that folder.
+ * AB/BA order is assigned alternately via ?action=nextOrder
  */
 
 var FOLDER_ID = "1z114upASWme0DVJ-nbihWJu5nVRgOENk";
 var SHARED_SECRET = "abba-thesis-2026";
 
+function nextOrder_() {
+  var props = PropertiesService.getScriptProperties();
+  var n = Number(props.getProperty("assignCount") || "0");
+  var order = n % 2 === 0 ? "AB" : "BA";
+  props.setProperty("assignCount", String(n + 1));
+  return { order: order, assignIndex: n + 1 };
+}
+
 function doPost(e) {
   try {
     var raw = (e && e.postData && e.postData.contents) || "{}";
     var data = JSON.parse(raw);
+
+    if (data.action === "nextOrder") {
+      if (data.secret !== SHARED_SECRET) {
+        return json_({ ok: false, error: "Unauthorized" });
+      }
+      var assigned = nextOrder_();
+      return json_({
+        ok: true,
+        order: assigned.order,
+        assignIndex: assigned.assignIndex,
+        method: "apps-script-counter",
+      });
+    }
 
     if (data.secret !== SHARED_SECRET) {
       return json_({ ok: false, error: "Unauthorized" });
@@ -67,7 +89,6 @@ function doPost(e) {
         });
       }
     } else if (data.videoBase64 && data.videoBase64.length > 0) {
-      // Legacy single-video payload
       var legacyMime = data.videoMime || "video/webm";
       var legacyName = base + "_recording.webm";
       var legacyDecoded = Utilities.base64Decode(data.videoBase64);
@@ -93,7 +114,20 @@ function doPost(e) {
   }
 }
 
-function doGet() {
+function doGet(e) {
+  try {
+    if (e && e.parameter && e.parameter.action === "nextOrder") {
+      var assigned = nextOrder_();
+      return json_({
+        ok: true,
+        order: assigned.order,
+        assignIndex: assigned.assignIndex,
+        method: "apps-script-counter",
+      });
+    }
+  } catch (err) {
+    return json_({ ok: false, error: String(err) });
+  }
   return json_({
     ok: true,
     service: "AB/BA study Drive uploader",

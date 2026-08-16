@@ -21,8 +21,8 @@ endpoint: "https://script.google.com/macros/s/XXXX/exec",
 8. Confirm the folder is yours:  
    https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
 
+If you already deployed an older script, create a **new deployment version** after updating `Code.gs` so both multi-video upload and alternating AB/BA assignment (`nextOrder`) work.
+
 ## Test
 
-Open the study app → complete a short session → you should see new `_results.json` plus `_VersionA_recording.webm` and `_VersionB_recording.webm` in that folder.
-
-If you already deployed an older Code.gs, create a **new deployment** (or “Manage deployments → Edit → Version: New”) after pasting the updated script so multi-video upload works.
+Open the study app → complete a short session → you should see new `_results.json` plus `_VersionA_recording.webm` and `_VersionB_recording.webm` in that folder. The thank-you screen should appear only after upload succeeds.

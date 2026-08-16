@@ -7,6 +7,8 @@
   const state = {
     participantId: "",
     order: "AB", // AB | BA
+    assignIndex: null,
+    assignmentMethod: null,
     sequence: ["A", "B"],
     seqIndex: 0,
     consent: false,
@@ -20,9 +22,13 @@
     formWindow: null,
     formOpened: false,
     taskAutoFinished: false,
+    uploading: false,
+    uploadComplete: false,
     versions: {
       A: {
         completed: null,
+        reachedConfirmationPage: false,
+        reachedConfirmationAuto: false,
         taskTimeMs: 0,
         sus: {},
         susScore: null,
@@ -30,6 +36,8 @@
       },
       B: {
         completed: null,
+        reachedConfirmationPage: false,
+        reachedConfirmationAuto: false,
         taskTimeMs: 0,
         sus: {},
         susScore: null,
@@ -64,15 +72,63 @@
     return sum * 2.5;
   }
 
-  function assignOrder() {
+  async function assignOrder() {
     const saved = sessionStorage.getItem("abba-order");
     if (saved === "AB" || saved === "BA") {
       state.order = saved;
+      state.assignIndex = Number(sessionStorage.getItem("abba-assign-index") || "0") || null;
+      state.assignmentMethod =
+        sessionStorage.getItem("abba-assign-method") || "session";
     } else {
-      state.order = Math.random() < 0.5 ? "AB" : "BA";
+      let assigned = null;
+      const cfg = window.STUDY_UPLOAD || {};
+      if (cfg.endpoint) {
+        try {
+          const res = await fetch(cfg.endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "nextOrder",
+              secret: cfg.secret,
+            }),
+            redirect: "follow",
+          });
+          const data = JSON.parse(await res.text());
+          if (data.ok && (data.order === "AB" || data.order === "BA")) {
+            assigned = {
+              order: data.order,
+              assignIndex: data.assignIndex,
+              method: data.method || "apps-script-counter",
+            };
+          }
+        } catch (_) {}
+      }
+      if (!assigned) {
+        // Fallback: alternate on this browser if the server counter is unavailable
+        const n = Number(localStorage.getItem("abba-assign-count") || "0");
+        assigned = {
+          order: n % 2 === 0 ? "AB" : "BA",
+          assignIndex: n + 1,
+          method: "localStorage-alternate",
+        };
+        localStorage.setItem("abba-assign-count", String(n + 1));
+      }
+      state.order = assigned.order;
+      state.assignIndex = assigned.assignIndex;
+      state.assignmentMethod = assigned.method;
       sessionStorage.setItem("abba-order", state.order);
+      sessionStorage.setItem("abba-assign-index", String(state.assignIndex));
+      sessionStorage.setItem("abba-assign-method", state.assignmentMethod);
     }
     state.sequence = state.order === "AB" ? ["A", "B"] : ["B", "A"];
+  }
+
+  function isSupportedStudyEnvironment() {
+    const ua = navigator.userAgent || "";
+    const mobile = /Mobi|Android|iPhone|iPad|iPod|Tablet/i.test(ua);
+    const chrome = /Chrome\//.test(ua) && !/Edg\//.test(ua) && !/OPR\//.test(ua);
+    const edge = /Edg\//.test(ua);
+    return !mobile && (chrome || edge);
   }
 
   function currentVersion() {
@@ -234,30 +290,28 @@
     state.formOpened = false;
   }
 
-  function onTaskAutoComplete() {
-    if (state.taskAutoFinished) return;
-    if (!state.timerStartedAt && state.timerAccumMs === 0) return;
-    state.taskAutoFinished = true;
-    // Go straight to SUS so the visible task time cannot bias ratings
-    finishCurrentTaskAndGoToSUS("Yes");
-  }
-
-  async function finishCurrentTaskAndGoToSUS(completedValue) {
+  async function finishCurrentTaskAndGoToSUS(completedValue, opts) {
+    const auto = !!(opts && opts.auto);
     const v = currentVersion();
     const ms = stopTimer();
     await stopRecording(v);
+    const reached = completedValue === "Yes";
     state.versions[v].completed = completedValue;
+    state.versions[v].reachedConfirmationPage = reached;
+    if (auto) state.versions[v].reachedConfirmationAuto = true;
     state.versions[v].taskTimeMs = ms;
-    try {
-      if (state.formWindow && !state.formWindow.closed) {
-        // Leave form tab open briefly so they can read success; do not force-close here
-      }
-    } catch (_) {}
     hide($("share-ok"));
     hide($("form-open-status"));
     hide($("rec-indicator"));
     prepareSUSUI();
     go("step-sus", state.seqIndex === 0 ? 4 : 6);
+  }
+
+  function onTaskAutoComplete() {
+    if (state.taskAutoFinished) return;
+    if (!state.timerStartedAt && state.timerAccumMs === 0) return;
+    state.taskAutoFinished = true;
+    finishCurrentTaskAndGoToSUS("Yes", { auto: true });
   }
 
   function shareHelpText(err) {
@@ -515,6 +569,8 @@
     const blob = ver.recordingBlob;
     return {
       completed: ver.completed,
+      reachedConfirmationPage: !!ver.reachedConfirmationPage,
+      reachedConfirmationAuto: !!ver.reachedConfirmationAuto,
       taskTimeMs: ver.taskTimeMs,
       sus: { ...ver.sus },
       susScore: ver.susScore,
@@ -533,6 +589,8 @@
       study: "AB/BA business to business registration usability",
       participantId: state.participantId,
       order: state.order,
+      assignIndex: state.assignIndex,
+      assignmentMethod: state.assignmentMethod,
       sequence: state.sequence,
       consent: state.consent,
       startedAt: state.startedAt,
@@ -543,7 +601,6 @@
       },
       comparative: { ...state.comparative },
       background: { ...state.background },
-      uploadLink: state.uploadLink || null,
       driveUpload: state.driveUpload || null,
     };
   }
@@ -567,8 +624,13 @@
   async function uploadToDrive() {
     const cfg = window.STUDY_UPLOAD || {};
     if (!cfg.endpoint) {
-      console.warn("STUDY_UPLOAD.endpoint is not set; results were not uploaded.");
-      return { ok: false, reason: "no-endpoint" };
+      return {
+        ok: false,
+        error: new Error(
+          "Upload is not configured. Please contact the researcher."
+        ),
+        reason: "no-endpoint",
+      };
     }
 
     try {
@@ -598,9 +660,51 @@
       state.driveUpload = data;
       return { ok: true, data: data };
     } catch (err) {
-      console.warn("Drive upload failed", err);
       return { ok: false, error: err };
     }
+  }
+
+  function setSubmitUi(mode, message) {
+    const status = $("submit-status");
+    const err = $("submit-error");
+    const retry = $("btn-retry-upload");
+    if (status) status.textContent = message;
+    if (mode === "error") {
+      if (err) {
+        err.textContent = message;
+        show(err);
+      }
+      if (status) {
+        status.textContent =
+          "Upload did not finish. Please keep this page open and try again.";
+      }
+      if (retry) show(retry);
+    } else {
+      if (err) hide(err);
+      if (retry) hide(retry);
+    }
+  }
+
+  async function submitStudyResults() {
+    state.uploading = true;
+    state.uploadComplete = false;
+    go("step-submit", 9);
+    setSubmitUi(
+      "pending",
+      "Submitting your responses… Please keep this page open."
+    );
+    const result = await uploadToDrive();
+    state.uploading = false;
+    if (result.ok) {
+      state.uploadComplete = true;
+      go("step-done", 9);
+      return;
+    }
+    const detail =
+      (result.error && result.error.message) ||
+      result.reason ||
+      "unknown error";
+    setSubmitUi("error", "Upload failed (" + detail + ").");
   }
 
   // ——— Event wiring ———
@@ -613,8 +717,15 @@
       });
     });
 
-  $("btn-consent").addEventListener("click", () => {
+  $("btn-consent").addEventListener("click", async () => {
     hide($("consent-error"));
+    if (!isSupportedStudyEnvironment()) {
+      $("consent-error").textContent =
+        "Please use Google Chrome or Microsoft Edge on a desktop or laptop to continue.";
+      show($("consent-error"));
+      show($("mobile-warn"));
+      return;
+    }
     const c = radioValue("consent");
     if (!c) {
       $("consent-error").textContent = "Please select Yes or No.";
@@ -631,7 +742,9 @@
       "P" +
       Date.now().toString(36).toUpperCase().slice(-6) +
       Math.floor(Math.random() * 90 + 10);
-    assignOrder();
+    $("btn-consent").disabled = true;
+    await assignOrder();
+    $("btn-consent").disabled = false;
     go("step-share", 2);
   });
 
@@ -650,7 +763,7 @@
     const done = radioValue("task-complete");
     if (!done) {
       $("task-error").textContent =
-        "Please indicate whether you completed the task.";
+        "Please answer whether you reached the final confirmation page.";
       show($("task-error"));
       return;
     }
@@ -699,9 +812,10 @@
     hide($("compare-error"));
     const overall = radioValue("pref-overall");
     const easier = radioValue("pref-easier");
-    if (!overall || !easier) {
+    const real = radioValue("pref-real");
+    if (!overall || !easier || !real) {
       $("compare-error").textContent =
-        "Please answer the required preference questions.";
+        "Please answer all three comparison questions.";
       show($("compare-error"));
       return;
     }
@@ -710,7 +824,7 @@
       preferredOverallWhy: $("pref-overall-why").value.trim(),
       easierFlow: easier,
       easierFlowWhy: $("pref-easier-why").value.trim(),
-      preferRealLife: radioValue("pref-real"),
+      preferRealLife: real,
       preferRealLifeWhy: $("pref-real-why").value.trim(),
     };
     go("step-background", 9);
@@ -722,10 +836,7 @@
     if (role === "Other") {
       role = ($("role-other") && $("role-other").value.trim()) || "Other";
     }
-    let device = radioValue("device");
-    if (device === "Other") {
-      device = ($("device-other") && $("device-other").value.trim()) || "Other";
-    }
+    const device = radioValue("device");
     const b2b = radioValue("b2b");
     const prior = radioValue("prior");
     const age = radioValue("age");
@@ -735,12 +846,30 @@
       show($("bg-error"));
       return;
     }
-    state.background = { role, b2bExperience: b2b, priorRegistration: prior, device, country, age };
+    state.background = {
+      role,
+      b2bExperience: b2b,
+      priorRegistration: prior,
+      device,
+      country,
+      age,
+    };
     state.finishedAt = new Date().toISOString();
     $("btn-background-next").disabled = true;
-    go("step-done", 9);
-    // Silent upload to Drive — no participant download UI
-    uploadToDrive();
+    submitStudyResults().finally(() => {
+      $("btn-background-next").disabled = false;
+    });
+  });
+
+  $("btn-retry-upload").addEventListener("click", () => {
+    submitStudyResults();
+  });
+
+  window.addEventListener("beforeunload", (event) => {
+    if (state.uploading && !state.uploadComplete) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
   });
 
   // Init
@@ -752,7 +881,7 @@
   buildRadioGroup("age-options", "age", S.ages);
   setProgress(1);
 
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
+  if (!isSupportedStudyEnvironment()) {
     show($("mobile-warn"));
   } else {
     hide($("mobile-warn"));

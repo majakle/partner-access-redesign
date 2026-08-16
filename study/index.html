@@ -26,12 +26,10 @@
         <div class="card prose">
           <p>Thank you for participating in this research.</p>
           <p>
-            This study evaluates and compares the usability of two versions of a
-            business-to-business registration process. The research is being
-            conducted as part of a master’s thesis at the University of Maribor,
-            Faculty of Economics and Business. The findings will be used to
-            evaluate whether the redesigned registration process improves the
-            user experience compared with the existing version.
+            This study compares the usability and user experience of two
+            versions of a business-to-business registration process. The
+            research is being conducted as part of a master’s thesis at the
+            University of Maribor, Faculty of Economics and Business.
           </p>
           <p>Participation should take approximately 15–30 minutes.</p>
 
@@ -39,7 +37,8 @@
           <p>
             You will be asked to complete the same defined registration task
             using two different versions of a business-to-business registration
-            process. You will be asked to have your screen recorded.
+            process (Version A and Version B). You will be asked to have your
+            screen recorded.
           </p>
           <p>Depending on the assigned order, you will either:</p>
           <ul>
@@ -49,7 +48,7 @@
           <p>
             After completing each version, you will answer ten statements about
             its usability. After both versions, you will answer several
-            comparative questions about your experience.
+            comparison questions about your experience.
           </p>
           <p>
             Please use only the fictional test information provided. Do not
@@ -58,8 +57,16 @@
           <p>
             You will also be asked for limited background information,
             including your professional role, previous experience with
-            business-to-business portals, and the device used during the
-            evaluation.
+            business-to-business portals, and whether you used a desktop or
+            laptop computer.
+          </p>
+
+          <h3>Who can take part</h3>
+          <p>
+            Please complete this study on a <strong>desktop or laptop</strong>
+            computer using <strong>Google Chrome</strong> or
+            <strong>Microsoft Edge</strong>. Phones, tablets, and other browsers
+            (including Safari) are not supported for this evaluation.
           </p>
 
           <h3>Voluntary participation</h3>
@@ -118,17 +125,19 @@
         </div>
 
         <div class="warn-banner" id="mobile-warn">
-          Screen recording works best on a laptop or desktop with Chrome or
-          Edge. On phones, recording may be limited or unavailable.
+          This study must be completed on a desktop or laptop with Google Chrome
+          or Microsoft Edge. Please reopen the link on a supported device and
+          browser.
         </div>
 
         <fieldset class="fieldset">
           <legend>
             By continuing, I confirm that: I have read and understood the
-            information above; I understand that participation is voluntary; I
-            understand that I must not enter real personal or company
-            information; I understand my screen will be recorded during the
-            tasks; and I voluntarily agree to participate in this research. *
+            information above; I am using a desktop or laptop with Chrome or
+            Edge; I understand that participation is voluntary; I understand
+            that I must not enter real personal or company information; I
+            understand my screen will be recorded during the tasks; and I
+            voluntarily agree to participate in this research. *
           </legend>
           <label class="radio"
             ><input type="radio" name="consent" value="yes" /> Yes, I agree to
@@ -218,13 +227,10 @@
             </div>
 
             <fieldset class="fieldset" id="task-complete-fieldset">
-              <legend>
-                Have you completed or carefully reviewed all steps of the
-                registration process? *
-              </legend>
+              <legend>Did you reach the final confirmation page? *</legend>
               <p class="hint">
-                Normally you are taken to the questionnaire automatically when
-                the form finishes. Use this only if that does not happen.
+                This is normally detected automatically when the form finishes.
+                Use this only if that does not happen.
               </p>
               <label class="radio"
                 ><input type="radio" name="task-complete" value="Yes" />
@@ -267,18 +273,18 @@
         <h1>Both registration tasks complete</h1>
         <div class="card prose">
           <p>
-            Next you will answer a few comparative questions and some brief
+            Next you will answer a few comparison questions and some brief
             background questions.
           </p>
         </div>
         <button type="button" class="btn primary" id="btn-after-stop">
-          Continue to open questions
+          Continue to comparison questions
         </button>
       </section>
 
       <!-- 8 Comparative -->
       <section id="step-compare" class="step hidden" data-step="8">
-        <h1>Open questions</h1>
+        <h1>Comparison questions</h1>
         <p class="lede">
           Please answer after you have completed both Version A and Version B.
           Use the screenshots below to recall which version is which.
@@ -308,7 +314,7 @@
         </div>
 
         <fieldset class="fieldset">
-          <legend>Which version did you prefer overall? A or B? *</legend>
+          <legend>Which version did you prefer overall? *</legend>
           <label class="radio"
             ><input type="radio" name="pref-overall" value="Version A" />
             Version A</label
@@ -317,14 +323,22 @@
             ><input type="radio" name="pref-overall" value="Version B" />
             Version B</label
           >
+          <label class="radio"
+            ><input
+              type="radio"
+              name="pref-overall"
+              value="No preference or about the same"
+            />
+            No preference or about the same</label
+          >
         </fieldset>
         <label class="field">
-          <span>Why did you prefer the selected version?</span>
+          <span>Why did you choose that option?</span>
           <textarea id="pref-overall-why" rows="3"></textarea>
         </label>
 
         <fieldset class="fieldset">
-          <legend>Which flow felt easier to complete? A or B? *</legend>
+          <legend>Which flow felt easier to complete? *</legend>
           <label class="radio"
             ><input type="radio" name="pref-easier" value="Version A" />
             Version A</label
@@ -333,15 +347,23 @@
             ><input type="radio" name="pref-easier" value="Version B" />
             Version B</label
           >
+          <label class="radio"
+            ><input
+              type="radio"
+              name="pref-easier"
+              value="No preference or about the same"
+            />
+            No preference or about the same</label
+          >
         </fieldset>
         <label class="field">
-          <span>Why did the selected version feel easier to complete?</span>
+          <span>Why did you choose that option?</span>
           <textarea id="pref-easier-why" rows="3"></textarea>
         </label>
 
         <fieldset class="fieldset">
           <legend>
-            Which version would you prefer to use in real life? A or B?
+            Which version would you prefer to use in real life? *
           </legend>
           <label class="radio"
             ><input type="radio" name="pref-real" value="Version A" /> Version
@@ -351,11 +373,17 @@
             ><input type="radio" name="pref-real" value="Version B" /> Version
             B</label
           >
+          <label class="radio"
+            ><input
+              type="radio"
+              name="pref-real"
+              value="No preference or about the same"
+            />
+            No preference or about the same</label
+          >
         </fieldset>
         <label class="field">
-          <span
-            >Why would you prefer to use the selected version in real life?</span
-          >
+          <span>Why did you choose that option?</span>
           <textarea id="pref-real-why" rows="3"></textarea>
         </label>
 
@@ -411,19 +439,31 @@
 
         <p id="bg-error" class="error hidden"></p>
         <button type="button" class="btn primary" id="btn-background-next">
-          Finish
+          Submit responses
         </button>
+      </section>
+
+      <section id="step-submit" class="step hidden">
+        <h1>Submitting your responses</h1>
+        <div class="card prose">
+          <p id="submit-status" aria-live="polite">
+            Submitting your responses… Please keep this page open.
+          </p>
+          <p id="submit-error" class="error hidden"></p>
+          <button type="button" class="btn primary hidden" id="btn-retry-upload">
+            Try uploading again
+          </button>
+        </div>
       </section>
 
       <section id="step-done" class="step hidden">
         <h1>Thank you</h1>
         <div class="card prose">
-          <p>Thank you for participating in this study.</p>
+          <p>Your responses have been saved. You may now close this page.</p>
           <p>
             If you have any further questions, please contact
             <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>.
           </p>
-          <p class="hint">You can close this page.</p>
         </div>
       </section>
 

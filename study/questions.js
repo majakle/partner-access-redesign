@@ -94,13 +94,7 @@ window.STUDY = {
     "Extensive experience",
   ],
   priorRegistration: ["Yes", "No", "I am not sure"],
-  devices: [
-    "Desktop computer",
-    "Laptop computer",
-    "Tablet",
-    "Mobile phone",
-    "Other",
-  ],
+  devices: ["Desktop computer", "Laptop computer"],
   ages: [
     "Under 18",
     "18–24",
