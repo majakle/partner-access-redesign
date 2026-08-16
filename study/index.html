@@ -3,48 +3,133 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AB/BA study — Partner registration</title>
+    <title>Usability Evaluation of a B2B Registration Process</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;500;600;650;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
-        <strong>Usability study</strong>
-        <span id="rec-indicator" class="rec-indicator hidden" aria-live="polite">
-          <span class="rec-dot"></span> Recording
-        </span>
+        <strong>Usability Evaluation of a B2B Registration Process</strong>
+        <div style="display: flex; align-items: center; gap: 1rem">
+          <span class="progress" id="progress-label">Step 1 of 9</span>
+          <span id="rec-indicator" class="rec-indicator hidden" aria-live="polite">
+            <span class="rec-dot" aria-hidden="true"></span> Recording
+          </span>
+        </div>
       </div>
     </header>
 
     <main class="wrap">
-      <section id="step-consent" class="step">
-        <h1>Usability evaluation — two registration designs</h1>
-        <p class="lede">
-          Master’s thesis, University of Maribor, Faculty of Economics and
-          Business. Researcher: Maja Skale
-          (<a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>).
-          prof. dr. .
-        </p>
-
+      <!-- 1 Consent -->
+      <section id="step-consent" class="step" data-step="1">
+        <h1>Usability Evaluation of a B2B Registration Process</h1>
         <div class="card prose">
+          <p>Thank you for participating in this research.</p>
           <p>
-            You will complete the <strong>same registration task twice</strong>
-            (Design 1 and Design 2). Use only the fictional test data shown
-            later. Do not enter real personal or company information.
+            This study evaluates and compares the usability of two versions of a
+            business-to-business registration process. The research is being
+            conducted as part of a master’s thesis at the University of Maribor,
+            Faculty of Economics and Business. The findings will be used to
+            evaluate whether the redesigned registration process improves the
+            user experience compared with the existing version.
+          </p>
+          <p>Participation should take approximately 15–30 minutes.</p>
+
+          <h3>What you will be asked to do</h3>
+          <p>
+            You will be asked to complete the same defined registration task
+            using two different versions of a business-to-business registration
+            process. You will be asked to have your screen recorded.
+          </p>
+          <p>Depending on the assigned order, you will either:</p>
+          <ul>
+            <li>complete Version A first and Version B second, or</li>
+            <li>complete Version B first and Version A second.</li>
+          </ul>
+          <p>
+            After completing each version, you will answer ten statements about
+            its usability. After both versions, you will answer several
+            comparative questions about your experience.
           </p>
           <p>
-            After you agree, the browser will ask you to
-            <strong>share your screen</strong>. Choose
-            <strong>Entire screen</strong> (or the whole browser window).
-            Recordings and answers are used only for this thesis, stored until
-            <strong>01.10.2026</strong>, then deleted. Participation is
-            voluntary.
+            Please use only the fictional test information provided. Do not
+            enter any real personal, contact, or company information.
           </p>
-          <p>About 25–40 minutes. Prefer Chrome or Edge.</p>
+          <p>
+            You will also be asked for limited background information,
+            including your professional role, previous experience with
+            business-to-business portals, and the device used during the
+            evaluation.
+          </p>
+
+          <h3>Voluntary participation</h3>
+          <p>
+            Participation is voluntary. You may stop at any time before
+            submitting without providing a reason. You may also skip any
+            question that is not marked as required.
+          </p>
+          <p>
+            Participation involves no anticipated risks beyond those normally
+            associated with using and evaluating an online registration form.
+            Your participation will not affect your relationship with any
+            company, the researcher, or the university.
+          </p>
+
+          <h3>Data collection and use</h3>
+          <p>
+            The study will collect your questionnaire responses, your
+            evaluations of both registration versions, limited background
+            information, screen recording of the registration tasks, and
+            automatically measured task times.
+          </p>
+          <p>
+            The collected data will be treated confidentially. Any identifying
+            information will be removed before the results are analysed or
+            presented.
+          </p>
+          <p>
+            The collected information will be used exclusively for research
+            connected with the master’s thesis. Results will be presented in an
+            aggregated or anonymized form so that individual participants cannot
+            be identified.
+          </p>
+          <p>
+            The raw research data will be stored securely until
+            <strong>1 October 2026</strong>. After that date, the raw data will
+            be permanently deleted. The data will not be shared with
+            unauthorized third parties. The video recording will be deleted
+            right after analysis.
+          </p>
+
+          <h3>Research contacts</h3>
+          <p>
+            Researcher: Maja Skale<br />
+            Email:
+            <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a
+            ><br />
+            Institution: University of Maribor, Faculty of Economics and
+            Business
+          </p>
+          <p>
+            prof. dr. <br />
+            Supervisor’s email:
+            <a href="mailto:"></a>
+          </p>
+        </div>
+
+        <div class="warn-banner" id="mobile-warn">
+          Screen recording works best on a laptop or desktop with Chrome or
+          Edge. On phones, recording may be limited or unavailable.
         </div>
 
         <label class="field">
-          <span>Participant ID</span>
+          <span>Participant ID (optional — leave blank to auto-generate)</span>
           <input
             id="participant-id"
             type="text"
@@ -54,46 +139,41 @@
         </label>
 
         <fieldset class="fieldset">
-          <legend>Participation consent</legend>
+          <legend>
+            By continuing, I confirm that: I have read and understood the
+            information above; I understand that participation is voluntary; I
+            understand that I must not enter real personal or company
+            information; I understand my screen will be recorded during the
+            tasks; and I voluntarily agree to participate in this research. *
+          </legend>
           <label class="radio"
-            ><input type="radio" name="consent-study" value="yes" /> Yes, I
-            agree to participate.</label
+            ><input type="radio" name="consent" value="yes" /> Yes, I agree to
+            participate.</label
           >
           <label class="radio"
-            ><input type="radio" name="consent-study" value="no" /> No, I do
-            not agree to participate.</label
-          >
-        </fieldset>
-
-        <fieldset class="fieldset">
-          <legend>Screen-recording consent</legend>
-          <label class="radio"
-            ><input type="radio" name="consent-record" value="yes" /> Yes, I
-            agree that my screen may be recorded during the two registration
-            tasks.</label
-          >
-          <label class="radio"
-            ><input type="radio" name="consent-record" value="no" /> No, I do
-            not agree to screen recording.</label
+            ><input type="radio" name="consent" value="no" /> No, I do not agree
+            to participate.</label
           >
         </fieldset>
 
         <p id="consent-error" class="error hidden"></p>
-        <button type="button" class="btn primary" id="btn-consent-continue">
+        <button type="button" class="btn primary" id="btn-consent">
           Continue
         </button>
       </section>
 
-      <section id="step-share" class="step hidden">
+      <!-- 2 Screen share -->
+      <section id="step-share" class="step hidden" data-step="2">
         <h1>Allow screen recording</h1>
         <div class="card prose">
           <p>
-            Click below and select <strong>Entire screen</strong>. Do not share
-            only this tab — otherwise Design 1 / Design 2 will not appear in the
-            recording.
+            Click the button below. Your browser will ask you to share your
+            screen. Please choose <strong>Entire Screen</strong> (or the whole
+            browser window), not only this tab — otherwise Version A / Version B
+            may not appear in the recording.
           </p>
           <p>
-            Your session order:
+            Your assigned order for this session:
             <strong id="order-label">—</strong>
           </p>
         </div>
@@ -101,199 +181,268 @@
           Allow screen recording
         </button>
         <p id="share-error" class="error hidden"></p>
-        <p id="share-ok" class="ok hidden">Screen share active.</p>
-        <button type="button" class="btn primary hidden" id="btn-share-continue">
-          Start Design 1 task
+        <p id="share-ok" class="ok hidden">Screen share active. You can continue.</p>
+        <button type="button" class="btn primary hidden" id="btn-share-next">
+          Start first registration task
         </button>
       </section>
 
-      <section id="step-task" class="step hidden">
-        <h1 id="task-title">Design 1 — registration task</h1>
-        <p id="task-intro" class="lede"></p>
+      <!-- 3 / 5 Task -->
+      <section id="step-task" class="step hidden" data-step="3">
+        <h1 id="task-title">
+          Registration task — Version <span id="task-version-label">A</span>
+        </h1>
+        <div class="card prose">
+          <p>
+            Imagine that you work for a company that wants to request access to
+            a B2B ordering portal to order furniture.
+          </p>
+          <p>
+            Your task is to complete the following registration form
+            (<strong>Version <span class="task-ver">A</span></strong
+            >).
+          </p>
+          <p>
+            Use only the fictional test information provided below. Do not enter
+            your real personal, contact, or company information.
+          </p>
+          <p>
+            While completing the task, pay attention to anything that appears
+            unclear, difficult, inconsistent, or unnecessarily time-consuming.
+            You do not need to explain aloud while working.
+          </p>
+        </div>
+
         <div class="layout-task">
           <aside class="card test-data">
-            <h2>Fictional test data</h2>
+            <h2>Fictional test information</h2>
             <p class="hint">Use only these values.</p>
             <dl id="test-data-list"></dl>
             <p id="task-hint" class="hint"></p>
           </aside>
-          <div class="task-actions card">
+
+          <div class="card task-actions">
             <p class="timer-block">
-              Time: <span id="timer-display" class="timer">00:00</span>
+              Time:
+              <span id="timer-display" class="timer" aria-live="polite"
+                >00:00</span
+              >
             </p>
-            <button type="button" class="btn primary" id="btn-open-design">
-              Open Design 1
+            <button type="button" class="btn primary" id="btn-open-version">
+              Open Version A &amp; start timer
             </button>
-            <p class="hint">Opens in a new tab. Timer starts on Open.</p>
+            <p class="hint">
+              Opens in a new tab. Complete the registration there, then return
+              here.
+            </p>
+
             <fieldset class="fieldset">
-              <legend>Did you complete this design?</legend>
+              <legend>
+                Have you completed or carefully reviewed all steps of the
+                registration process? *
+              </legend>
               <label class="radio"
-                ><input type="radio" name="task-complete" value="yes" />
+                ><input type="radio" name="task-complete" value="Yes" />
                 Yes</label
               >
               <label class="radio"
-                ><input type="radio" name="task-complete" value="partial" />
-                Partially</label
-              >
-              <label class="radio"
-                ><input type="radio" name="task-complete" value="no" /> No</label
+                ><input type="radio" name="task-complete" value="No" /> No</label
               >
             </fieldset>
-            <button
-              type="button"
-              class="btn primary"
-              id="btn-finish-task"
-              disabled
-            >
-              I finished — continue to SUS
+
+            <button type="button" class="btn primary" id="btn-finish-task" disabled>
+              I finished — continue to questionnaire
             </button>
             <p id="task-error" class="error hidden"></p>
           </div>
         </div>
       </section>
 
-      <section id="step-sus" class="step hidden">
-        <h1 id="sus-title">Usability questionnaire — Design 1</h1>
-        <p id="sus-intro" class="lede">
-          Thinking only about the design you just used…
+      <!-- 4 / 6 SUS -->
+      <section id="step-sus" class="step hidden" data-step="4">
+        <h1>
+          System Usability Scale —
+          <span id="sus-version-label">Version A</span>
+        </h1>
+        <p class="lede">
+          Based on your experience with this B2B registration process, indicate
+          how strongly you agree or disagree with each statement. Please select
+          one answer for every statement. Think only about the version you just
+          used.
         </p>
-        <form id="sus-form" class="card"></form>
+        <div id="sus-form" class="card"></div>
         <p id="sus-error" class="error hidden"></p>
-        <button type="button" class="btn primary" id="btn-sus-continue">
+        <button type="button" class="btn primary" id="btn-sus-next">
           Continue
         </button>
       </section>
 
-      <section id="step-download" class="step hidden">
-        <h1>Save your recording and results</h1>
+      <!-- 7 Stop recording / download prep -->
+      <section id="step-stop-rec" class="step hidden" data-step="7">
+        <h1>Recording complete</h1>
         <div class="card prose">
           <p>
-            Download both files, then upload them to the researcher’s Google
-            Drive folder or email
-            <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>.
+            Screen recording has stopped. Next you will answer a few comparative
+            questions, then download your results and recording for the
+            researcher.
+          </p>
+        </div>
+        <button type="button" class="btn primary" id="btn-after-stop">
+          Continue to open questions
+        </button>
+      </section>
+
+      <!-- 8 Comparative -->
+      <section id="step-compare" class="step hidden" data-step="8">
+        <h1>Open questions</h1>
+        <p class="lede">
+          Please answer after you have completed both Version A and Version B.
+        </p>
+
+        <fieldset class="fieldset">
+          <legend>Which version did you prefer overall? A or B? *</legend>
+          <label class="radio"
+            ><input type="radio" name="pref-overall" value="Version A" />
+            Version A</label
+          >
+          <label class="radio"
+            ><input type="radio" name="pref-overall" value="Version B" />
+            Version B</label
+          >
+        </fieldset>
+        <label class="field">
+          <span>Why did you prefer the selected version?</span>
+          <textarea id="pref-overall-why" rows="3"></textarea>
+        </label>
+
+        <fieldset class="fieldset">
+          <legend>Which flow felt easier to complete? A or B? *</legend>
+          <label class="radio"
+            ><input type="radio" name="pref-easier" value="Version A" />
+            Version A</label
+          >
+          <label class="radio"
+            ><input type="radio" name="pref-easier" value="Version B" />
+            Version B</label
+          >
+        </fieldset>
+        <label class="field">
+          <span>Why did the selected version feel easier to complete?</span>
+          <textarea id="pref-easier-why" rows="3"></textarea>
+        </label>
+
+        <fieldset class="fieldset">
+          <legend>
+            Which version would you prefer to use in real life? A or B?
+          </legend>
+          <label class="radio"
+            ><input type="radio" name="pref-real" value="Version A" /> Version
+            A</label
+          >
+          <label class="radio"
+            ><input type="radio" name="pref-real" value="Version B" /> Version
+            B</label
+          >
+        </fieldset>
+        <label class="field">
+          <span
+            >Why would you prefer to use the selected version in real life?</span
+          >
+          <textarea id="pref-real-why" rows="3"></textarea>
+        </label>
+
+        <p id="compare-error" class="error hidden"></p>
+        <button type="button" class="btn primary" id="btn-compare-next">
+          Continue to background questions
+        </button>
+      </section>
+
+      <!-- 9 Background -->
+      <section id="step-background" class="step hidden" data-step="9">
+        <h1>Background questions</h1>
+
+        <fieldset class="fieldset">
+          <legend>
+            Which option best describes your current professional role? *
+          </legend>
+          <div id="role-options"></div>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>
+            How much previous experience do you have with B2B ordering portals?
+            *
+          </legend>
+          <div id="b2b-options"></div>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>
+            Have you previously completed a registration process for a B2B
+            portal? *
+          </legend>
+          <div id="prior-options"></div>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>
+            Which device did you use to evaluate the registration process? *
+          </legend>
+          <div id="device-options"></div>
+        </fieldset>
+
+        <label class="field">
+          <span>What is your country of residence? *</span>
+          <input id="demo-country" type="text" required />
+        </label>
+
+        <fieldset class="fieldset">
+          <legend>What is your age group? *</legend>
+          <div id="age-options"></div>
+        </fieldset>
+
+        <p id="bg-error" class="error hidden"></p>
+        <button type="button" class="btn primary" id="btn-background-next">
+          Continue to download results
+        </button>
+      </section>
+
+      <!-- Download -->
+      <section id="step-download" class="step hidden" data-step="10">
+        <h1>Send your results to the researcher</h1>
+        <div class="card prose">
+          <p>
+            Please download both files below, then email them to
+            <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>
+            (or upload them to the Google Drive folder you were given).
           </p>
           <ul>
-            <li>Screen recording (<code>.webm</code>)</li>
-            <li>Results (<code>.json</code>) — times + SUS scores</li>
+            <li>
+              <strong>Results JSON</strong> — answers, SUS scores, and task
+              times
+            </li>
+            <li><strong>Screen recording</strong> — <code>.webm</code> video</li>
           </ul>
           <p id="download-status" class="hint"></p>
         </div>
         <div class="btn-row">
+          <button type="button" class="btn primary" id="btn-dl-json">
+            Download results JSON
+          </button>
           <button type="button" class="btn primary" id="btn-dl-video">
             Download recording
           </button>
-          <button type="button" class="btn" id="btn-dl-json">
-            Download results JSON
-          </button>
+          <a class="btn" id="btn-mailto" href="#">Open email to researcher</a>
         </div>
-        <button type="button" class="btn primary" id="btn-after-download">
-          Continue to comparison questions
-        </button>
-      </section>
-
-      <section id="step-compare" class="step hidden">
-        <h1>Compare the two designs</h1>
-        <p class="lede">Answer after you have tried both Design 1 and Design 2.</p>
-
-        <fieldset class="fieldset card">
-          <legend>
-            1. Which design would you prefer for a real partner-access request?
-          </legend>
-          <label class="radio"
-            ><input type="radio" name="pref" value="design1" /> Design 1</label
-          >
-          <label class="radio"
-            ><input type="radio" name="pref" value="design2" /> Design 2</label
-          >
-          <label class="radio"
-            ><input type="radio" name="pref" value="none" /> No preference</label
-          >
-        </fieldset>
-
         <label class="field">
           <span
-            >2. Please explain why you prefer that design (or why you have no
-            preference). What mattered most?</span
+            >Optional: paste a Google Drive / cloud link if you uploaded the
+            files yourself</span
           >
-          <textarea id="pref-why" rows="4"></textarea>
+          <input id="upload-link" type="text" placeholder="https://…" />
         </label>
-
-        <label class="field">
-          <span
-            >3. What is the most important difference between Design 1 and Design
-            2 for you?</span
-          >
-          <textarea id="pref-diff" rows="4"></textarea>
-        </label>
-
-        <h2>Background</h2>
-        <label class="field">
-          <span>Professional role</span>
-          <select id="demo-role">
-            <option value="">—</option>
-            <option>Purchasing or procurement employee</option>
-            <option>Interior designer or architect</option>
-            <option>Sales employee</option>
-            <option>Business owner or company director</option>
-            <option>Administrative employee</option>
-            <option>Information technology employee</option>
-            <option>Student</option>
-            <option>Other</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Experience with B2B ordering portals</span>
-          <select id="demo-b2b">
-            <option value="">—</option>
-            <option>No previous experience</option>
-            <option>Limited experience</option>
-            <option>Some experience</option>
-            <option>Considerable experience</option>
-            <option>Extensive experience</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Device used</span>
-          <select id="demo-device">
-            <option value="">—</option>
-            <option>Laptop computer</option>
-            <option>Desktop computer</option>
-            <option>Tablet</option>
-            <option>Mobile phone</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Country of residence</span>
-          <input id="demo-country" type="text" />
-        </label>
-        <label class="field">
-          <span>Age group</span>
-          <select id="demo-age">
-            <option value="">—</option>
-            <option>18–24</option>
-            <option>25–34</option>
-            <option>35–44</option>
-            <option>45–54</option>
-            <option>55–64</option>
-            <option>65+</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Willing to do a short follow-up interview?</span>
-          <select id="demo-interview">
-            <option value="">—</option>
-            <option>Yes</option>
-            <option>No</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Email (only if Yes to interview)</span>
-          <input id="demo-email" type="email" autocomplete="email" />
-        </label>
-
-        <p id="compare-error" class="error hidden"></p>
-        <button type="button" class="btn primary" id="btn-finish-study">
-          Submit and finish
+        <button type="button" class="btn primary" id="btn-finish">
+          Finish study
         </button>
       </section>
 
@@ -301,8 +450,8 @@
         <h1>Thank you</h1>
         <div class="card prose">
           <p>
-            Please upload your recording and results JSON to the Drive folder
-            you were given, or email them to
+            Thank you for participating. If you have not yet sent your files,
+            please email the JSON and recording to
             <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>.
           </p>
           <div class="btn-row">
@@ -319,12 +468,12 @@
       <section id="step-declined" class="step hidden">
         <h1>Thank you</h1>
         <p class="lede">
-          You chose not to participate or not to allow recording. You can close
-          this page.
+          You chose not to participate. You can close this page.
         </p>
       </section>
     </main>
 
+    <script src="questions.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

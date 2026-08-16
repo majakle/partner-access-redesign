@@ -1,160 +1,96 @@
-/**
- * Full AB/BA study harness — consent, screen capture, timers, dual SUS, downloads.
- */
 (function () {
-  const URL_A = "https://majakle.github.io/sign-up/?signup=yes";
-  const URL_B = "https://majakle.github.io/partner-access-redesign/";
-  const STORAGE_KEY = "abbaFullHarnessV1";
+  "use strict";
 
-  const SUS_ITEMS = [
-    "I think I would be willing to use this registration process again if needed.",
-    "I found the registration process unnecessarily complex.",
-    "I thought the registration process was easy to use.",
-    "I think I would need support from a technically experienced person to complete the registration.",
-    "I found that the different parts of the registration process were well integrated.",
-    "I thought there was too much inconsistency in the registration process.",
-    "I imagine that most people would learn to use this registration process very quickly.",
-    "I found the registration process very cumbersome to use.",
-    "I felt confident while completing the registration process.",
-    "I needed to learn many things before I could complete the registration process.",
-  ];
-
-  const SCALE = [
-    { value: 1, label: "Strongly disagree" },
-    { value: 2, label: "Disagree" },
-    { value: 3, label: "Neither" },
-    { value: 4, label: "Agree" },
-    { value: 5, label: "Strongly agree" },
-  ];
-
-  const TEST_DATA = [
-    ["First name", "Anna"],
-    ["Last name", "de Vries"],
-    ["Work email", "anna@companyxy.test"],
-    ["Phone", "NL +31 / 6 12345678"],
-    ["Company name", "Company XY"],
-    ["VAT ID", "NL123456789B01"],
-    ["Postal code", "1234 AB"],
-    ["House number", "12"],
-    ["Street", "Street"],
-    ["City", "City"],
-    ["Country", "Netherlands"],
-    ["Website (if asked)", "www.companyxy.test"],
-    ["Social (if asked)", "instagram.com/companyxy"],
-    ["About (if asked)", "Interior retail showroom focused on custom furniture."],
-  ];
+  const S = window.STUDY;
+  const TOTAL_STEPS = 9;
 
   const state = {
     participantId: "",
-    order: null,
-    design1Code: null,
-    design2Code: null,
-    orderFromQuery: false,
+    order: "AB", // AB | BA
+    sequence: ["A", "B"],
+    seqIndex: 0,
+    consent: false,
+    startedAt: null,
+    finishedAt: null,
     stream: null,
     recorder: null,
     chunks: [],
-    videoBlob: null,
-    recordingStoppedEarly: false,
-    currentDesignSlot: 1,
-    tasks: { 1: emptyTask(), 2: emptyTask() },
-    timerRaf: null,
-    sus: { 1: {}, 2: {} },
+    recordingBlob: null,
+    recordingMime: "video/webm",
+    timerInterval: null,
+    timerStartedAt: null,
+    timerAccumMs: 0,
+    versions: {
+      A: { completed: null, taskTimeMs: 0, sus: {}, susScore: null },
+      B: { completed: null, taskTimeMs: 0, sus: {}, susScore: null },
+    },
     comparative: {},
-    demographics: {},
+    background: {},
+    uploadLink: "",
   };
 
-  function emptyTask() {
-    return {
-      code: null,
-      url: null,
-      openedAt: null,
-      finishedAt: null,
-      startPerf: null,
-      task_time_ms: null,
-      completion: null,
-      timerRunning: false,
-    };
+  const $ = (id) => document.getElementById(id);
+  const show = (el) => el && el.classList.remove("hidden");
+  const hide = (el) => el && el.classList.add("hidden");
+
+  function radioValue(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : null;
   }
 
-  function $(id) {
-    return document.getElementById(id);
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0");
   }
 
-  function showStep(id) {
-    document.querySelectorAll(".step").forEach((el) => el.classList.add("hidden"));
-    const step = $("step-" + id);
-    if (step) step.classList.remove("hidden");
-    persist();
-    window.scrollTo(0, 0);
-  }
-
-  function persist() {
-    try {
-      sessionStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          participantId: state.participantId,
-          order: state.order,
-          design1Code: state.design1Code,
-          design2Code: state.design2Code,
-          orderFromQuery: state.orderFromQuery,
-          currentDesignSlot: state.currentDesignSlot,
-          recordingStoppedEarly: state.recordingStoppedEarly,
-          tasks: {
-            1: { ...state.tasks[1], timerRunning: false, startPerf: null },
-            2: { ...state.tasks[2], timerRunning: false, startPerf: null },
-          },
-          sus: state.sus,
-          comparative: state.comparative,
-          demographics: state.demographics,
-        })
-      );
-    } catch (_) {
-      /* ignore */
+  function scoreSUS(susMap) {
+    // ratings 1..5; odd items (1,3,5,7,9): rating-1; even: 5-rating; * 2.5
+    let sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      const key = "s" + i;
+      const r = Number(susMap[key]);
+      if (!r) return null;
+      sum += i % 2 === 1 ? r - 1 : 5 - r;
     }
+    return sum * 2.5;
   }
 
-  function applyOrder(order) {
-    state.order = order;
-    if (order === "AB") {
-      state.design1Code = "A";
-      state.design2Code = "B";
+  function assignOrder() {
+    const saved = sessionStorage.getItem("abba-order");
+    if (saved === "AB" || saved === "BA") {
+      state.order = saved;
     } else {
-      state.design1Code = "B";
-      state.design2Code = "A";
+      state.order = Math.random() < 0.5 ? "AB" : "BA";
+      sessionStorage.setItem("abba-order", state.order);
     }
-    state.tasks[1].code = state.design1Code;
-    state.tasks[1].url = state.design1Code === "A" ? URL_A : URL_B;
-    state.tasks[2].code = state.design2Code;
-    state.tasks[2].url = state.design2Code === "A" ? URL_A : URL_B;
+    state.sequence = state.order === "AB" ? ["A", "B"] : ["B", "A"];
   }
 
-  function assignOrderFromId(pid) {
-    const digits = String(pid).replace(/\D/g, "");
-    if (digits) {
-      return parseInt(digits.slice(-1), 10) % 2 === 1 ? "AB" : "BA";
-    }
-    return Math.random() < 0.5 ? "AB" : "BA";
+  function currentVersion() {
+    return state.sequence[state.seqIndex];
   }
 
-  function applyQuery() {
-    const q = new URLSearchParams(location.search);
-    const pid = q.get("pid");
-    const order = q.get("order");
-    if (pid) {
-      state.participantId = pid;
-      $("participant-id").value = pid;
-    }
-    if (order === "AB" || order === "BA") {
-      applyOrder(order);
-      state.orderFromQuery = true;
-    }
+  function setProgress(n) {
+    $("progress-label").textContent = "Step " + n + " of " + TOTAL_STEPS;
+  }
+
+  function hideAllSteps() {
+    document.querySelectorAll(".step").forEach((s) => hide(s));
+  }
+
+  function go(stepId, progressNum) {
+    hideAllSteps();
+    show($(stepId));
+    if (progressNum) setProgress(progressNum);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function fillTestData() {
     const dl = $("test-data-list");
     dl.innerHTML = "";
-    TEST_DATA.forEach(([k, v]) => {
+    S.testData.forEach(([k, v]) => {
       const dt = document.createElement("dt");
       dt.textContent = k;
       const dd = document.createElement("dd");
@@ -164,61 +100,167 @@
     });
   }
 
-  function designHint(code) {
-    if (code === "A") {
-      return "Tip: If you see sign-in, click Create account. Fill with test data and submit.";
+  function buildSUSForm() {
+    const root = $("sus-form");
+    root.innerHTML = "";
+
+    // Desktop table
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "sus-desktop";
+    const table = document.createElement("table");
+    table.className = "sus-table";
+    const thead = document.createElement("thead");
+    const hr = document.createElement("tr");
+    const th0 = document.createElement("th");
+    th0.className = "item-col";
+    th0.textContent = "Statement";
+    hr.appendChild(th0);
+    S.susScale.forEach((label) => {
+      const th = document.createElement("th");
+      th.textContent = label;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    S.susItems.forEach((item, idx) => {
+      const tr = document.createElement("tr");
+      const td0 = document.createElement("td");
+      td0.className = "item-col";
+      td0.textContent = idx + 1 + ". " + item.text;
+      tr.appendChild(td0);
+      S.susScale.forEach((_, si) => {
+        const td = document.createElement("td");
+        const lab = document.createElement("label");
+        const inp = document.createElement("input");
+        inp.type = "radio";
+        inp.name = "sus-" + item.id;
+        inp.value = String(si + 1);
+        lab.appendChild(inp);
+        td.appendChild(lab);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    root.appendChild(tableWrap);
+
+    // Mobile stacked
+    const mobile = document.createElement("div");
+    mobile.className = "sus-mobile";
+    S.susItems.forEach((item, idx) => {
+      const block = document.createElement("div");
+      block.className = "sus-item";
+      const p = document.createElement("p");
+      p.textContent = idx + 1 + ". " + item.text;
+      block.appendChild(p);
+      S.susScale.forEach((label, si) => {
+        const lab = document.createElement("label");
+        lab.className = "radio";
+        const inp = document.createElement("input");
+        inp.type = "radio";
+        inp.name = "sus-" + item.id;
+        inp.value = String(si + 1);
+        lab.appendChild(inp);
+        lab.appendChild(document.createTextNode(" " + label));
+        block.appendChild(lab);
+      });
+      mobile.appendChild(block);
+    });
+    root.appendChild(mobile);
+  }
+
+  function buildRadioGroup(containerId, name, options) {
+    const root = $(containerId);
+    root.innerHTML = "";
+    options.forEach((opt) => {
+      const lab = document.createElement("label");
+      lab.className = "radio";
+      const inp = document.createElement("input");
+      inp.type = "radio";
+      inp.name = name;
+      inp.value = opt;
+      lab.appendChild(inp);
+      lab.appendChild(document.createTextNode(" " + opt));
+      root.appendChild(lab);
+      if (opt === "Other") {
+        const other = document.createElement("input");
+        other.type = "text";
+        other.id = name + "-other";
+        other.placeholder = "Please specify";
+        other.style.margin = "0.35rem 0 0.75rem 1.5rem";
+        other.style.display = "none";
+        root.appendChild(other);
+        inp.addEventListener("change", () => {
+          other.style.display = "block";
+        });
+      } else {
+        inp.addEventListener("change", () => {
+          const o = document.getElementById(name + "-other");
+          if (o) o.style.display = "none";
+        });
+      }
+    });
+  }
+
+  function prepareTaskUI() {
+    const v = currentVersion();
+    $("task-version-label").textContent = v;
+    document.querySelectorAll(".task-ver").forEach((el) => {
+      el.textContent = v;
+    });
+    $("btn-open-version").textContent =
+      "Open Version " + v + " & start timer";
+    $("task-hint").textContent = S.hints[v] || "";
+    document
+      .querySelectorAll('input[name="task-complete"]')
+      .forEach((r) => (r.checked = false));
+    $("btn-finish-task").disabled = true;
+    hide($("task-error"));
+    stopTimerDisplayOnly();
+    $("timer-display").textContent = "00:00";
+    state.timerStartedAt = null;
+    state.timerAccumMs = 0;
+  }
+
+  function prepareSUSUI() {
+    const v = currentVersion();
+    $("sus-version-label").textContent = "Version " + v;
+    buildSUSForm();
+    hide($("sus-error"));
+  }
+
+  function stopTimerDisplayOnly() {
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
     }
-    return "Tip: Start partner application. Search Company XY (or VAT) → Use these details → finish.";
   }
 
-  function formatMs(ms) {
-    const s = Math.floor((ms || 0) / 1000);
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    return String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0");
+  function startTimer() {
+    if (state.timerStartedAt) return;
+    state.timerStartedAt = performance.now();
+    stopTimerDisplayOnly();
+    state.timerInterval = setInterval(() => {
+      const elapsed =
+        state.timerAccumMs + (performance.now() - state.timerStartedAt);
+      $("timer-display").textContent = formatTime(elapsed);
+    }, 250);
   }
 
-  function updateTimerDisplay() {
-    const t = state.tasks[state.currentDesignSlot];
-    if (!t.timerRunning || t.startPerf == null) {
-      $("timer-display").textContent = formatMs(t.task_time_ms || 0);
-      return;
+  function stopTimer() {
+    if (state.timerStartedAt) {
+      state.timerAccumMs += performance.now() - state.timerStartedAt;
+      state.timerStartedAt = null;
     }
-    $("timer-display").textContent = formatMs(performance.now() - t.startPerf);
-    state.timerRaf = requestAnimationFrame(updateTimerDisplay);
+    stopTimerDisplayOnly();
+    $("timer-display").textContent = formatTime(state.timerAccumMs);
+    return Math.round(state.timerAccumMs);
   }
 
-  function startTimer(slot) {
-    const t = state.tasks[slot];
-    if (t.timerRunning) return;
-    t.startPerf = performance.now();
-    t.openedAt = new Date().toISOString();
-    t.timerRunning = true;
-    t.finishedAt = null;
-    t.task_time_ms = null;
-    cancelAnimationFrame(state.timerRaf);
-    updateTimerDisplay();
-    persist();
-  }
-
-  function stopTimer(slot) {
-    const t = state.tasks[slot];
-    if (t.timerRunning && t.startPerf != null) {
-      t.task_time_ms = Math.round(performance.now() - t.startPerf);
-      t.finishedAt = new Date().toISOString();
-      t.timerRunning = false;
-      cancelAnimationFrame(state.timerRaf);
-      $("timer-display").textContent = formatMs(t.task_time_ms);
-    }
-    persist();
-  }
-
-  function setRecordingUi(on) {
-    $("rec-indicator").classList.toggle("hidden", !on);
-  }
-
-  async function startShare() {
-    $("share-error").classList.add("hidden");
+  async function startRecording() {
+    hide($("share-error"));
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { frameRate: 15 },
@@ -226,156 +268,99 @@
       });
       state.stream = stream;
       state.chunks = [];
-      state.videoBlob = null;
-      state.recordingStoppedEarly = false;
 
-      const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-        ? "video/webm;codecs=vp9"
-        : MediaRecorder.isTypeSupported("video/webm")
-          ? "video/webm"
-          : "";
-      const recorder = mime
-        ? new MediaRecorder(stream, { mimeType: mime })
-        : new MediaRecorder(stream);
+      let mime = "video/webm;codecs=vp9";
+      if (!MediaRecorder.isTypeSupported(mime)) mime = "video/webm";
+      if (!MediaRecorder.isTypeSupported(mime)) mime = "";
+      state.recordingMime = mime || "video/webm";
+
+      const recorder = new MediaRecorder(
+        stream,
+        mime ? { mimeType: mime, videoBitsPerSecond: 1_200_000 } : undefined
+      );
       state.recorder = recorder;
-
       recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) state.chunks.push(e.data);
+        if (e.data && e.data.size) state.chunks.push(e.data);
       };
       recorder.onstop = () => {
-        state.videoBlob = new Blob(state.chunks, {
-          type: recorder.mimeType || "video/webm",
+        state.recordingBlob = new Blob(state.chunks, {
+          type: state.recordingMime,
         });
-        setRecordingUi(false);
+        stream.getTracks().forEach((t) => t.stop());
+        hide($("rec-indicator"));
       };
-
       stream.getVideoTracks()[0].addEventListener("ended", () => {
-        state.recordingStoppedEarly = true;
-        if (state.recorder && state.recorder.state !== "inactive") {
+        if (state.recorder && state.recorder.state === "recording") {
           state.recorder.stop();
         }
-        setRecordingUi(false);
       });
-
       recorder.start(1000);
-      setRecordingUi(true);
-      $("share-ok").classList.remove("hidden");
-      $("btn-share-continue").classList.remove("hidden");
+      show($("rec-indicator"));
+      show($("share-ok"));
+      show($("btn-share-next"));
       $("btn-start-share").disabled = true;
-    } catch (_) {
+    } catch (err) {
       $("share-error").textContent =
-        "Screen share was blocked or cancelled. Try again and choose Entire screen.";
-      $("share-error").classList.remove("hidden");
+        "Screen sharing was blocked or cancelled. Please try again and choose Entire Screen.";
+      show($("share-error"));
     }
   }
 
-  function stopRecorder() {
+  function stopRecording() {
     return new Promise((resolve) => {
       if (!state.recorder || state.recorder.state === "inactive") {
-        if (state.chunks.length && !state.videoBlob) {
-          state.videoBlob = new Blob(state.chunks, { type: "video/webm" });
-        }
         resolve();
         return;
       }
       state.recorder.addEventListener("stop", () => resolve(), { once: true });
-      try {
-        state.recorder.stop();
-      } catch (_) {
-        resolve();
-      }
-      if (state.stream) state.stream.getTracks().forEach((t) => t.stop());
+      state.recorder.stop();
     });
   }
 
-  function scoreSus(answers) {
-    let sum = 0;
-    for (let i = 1; i <= 10; i++) {
-      const r = Number(answers[i]);
-      if (!r) return null;
-      sum += i % 2 === 1 ? r - 1 : 5 - r;
+  function collectSUS() {
+    const map = {};
+    for (const item of S.susItems) {
+      const val = radioValue("sus-" + item.id);
+      if (!val) return null;
+      map[item.id] = Number(val);
     }
-    return sum * 2.5;
-  }
-
-  function buildSusForm(slot) {
-    const form = $("sus-form");
-    form.innerHTML = "";
-    SUS_ITEMS.forEach((text, idx) => {
-      const n = idx + 1;
-      const item = document.createElement("div");
-      item.className = "sus-item";
-      item.innerHTML = `<p>${n}. ${text}</p>`;
-      const scale = document.createElement("div");
-      scale.className = "sus-scale";
-      SCALE.forEach((opt) => {
-        const lab = document.createElement("label");
-        lab.innerHTML = `<input type="radio" name="sus${slot}-${n}" value="${opt.value}" /><span>${opt.label}</span>`;
-        if (String(state.sus[slot][n]) === String(opt.value)) {
-          lab.querySelector("input").checked = true;
-        }
-        scale.appendChild(lab);
-      });
-      item.appendChild(scale);
-      form.appendChild(item);
-    });
-  }
-
-  function readSus(slot) {
-    const answers = {};
-    for (let n = 1; n <= 10; n++) {
-      const el = document.querySelector(
-        `input[name="sus${slot}-${n}"]:checked`
-      );
-      if (!el) return null;
-      answers[n] = Number(el.value);
-    }
-    state.sus[slot] = answers;
-    persist();
-    return answers;
+    return map;
   }
 
   function buildResults() {
     return {
-      study: "AB/BA full study harness",
-      exported_at: new Date().toISOString(),
-      participant_id: state.participantId,
-      assigned_order: state.order,
-      design1: {
-        label: "Design 1",
-        code: state.design1Code,
-        url: state.tasks[1].url,
-        completion: state.tasks[1].completion,
-        opened_at: state.tasks[1].openedAt,
-        finished_at: state.tasks[1].finishedAt,
-        task_time_ms: state.tasks[1].task_time_ms,
-        task_time_s:
-          state.tasks[1].task_time_ms != null
-            ? Math.round(state.tasks[1].task_time_ms / 1000)
-            : null,
-        sus_raw: state.sus[1],
-        sus_score: scoreSus(state.sus[1]),
+      study: "AB/BA B2B registration usability",
+      participantId: state.participantId,
+      order: state.order,
+      sequence: state.sequence,
+      consent: state.consent,
+      startedAt: state.startedAt,
+      finishedAt: state.finishedAt || new Date().toISOString(),
+      versions: {
+        A: { ...state.versions.A },
+        B: { ...state.versions.B },
       },
-      design2: {
-        label: "Design 2",
-        code: state.design2Code,
-        url: state.tasks[2].url,
-        completion: state.tasks[2].completion,
-        opened_at: state.tasks[2].openedAt,
-        finished_at: state.tasks[2].finishedAt,
-        task_time_ms: state.tasks[2].task_time_ms,
-        task_time_s:
-          state.tasks[2].task_time_ms != null
-            ? Math.round(state.tasks[2].task_time_ms / 1000)
-            : null,
-        sus_raw: state.sus[2],
-        sus_score: scoreSus(state.sus[2]),
-      },
-      recording_stopped_early: state.recordingStoppedEarly,
-      comparative: state.comparative,
-      demographics: state.demographics,
-      url_map: { A: URL_A, B: URL_B },
+      comparative: { ...state.comparative },
+      background: { ...state.background },
+      uploadLink: state.uploadLink || null,
+      recording: state.recordingBlob
+        ? {
+            mimeType: state.recordingBlob.type,
+            bytes: state.recordingBlob.size,
+            filename: fileBase() + "_recording.webm",
+          }
+        : null,
     };
+  }
+
+  function fileBase() {
+    return (
+      (state.participantId || "Pxxxx") +
+      "_" +
+      state.order +
+      "_" +
+      (state.startedAt || "").slice(0, 10)
+    );
   }
 
   function downloadBlob(blob, filename) {
@@ -389,185 +374,226 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  function fileId() {
-    return state.participantId.replace(/[^\w.-]+/g, "_") || "participant";
-  }
-
-  function downloadJson() {
-    downloadBlob(
-      new Blob([JSON.stringify(buildResults(), null, 2)], {
-        type: "application/json",
-      }),
-      fileId() + "_results.json"
-    );
+  function downloadJSON() {
+    const data = buildResults();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    downloadBlob(blob, fileBase() + "_results.json");
   }
 
   function downloadVideo() {
-    if (!state.videoBlob) {
-      alert("No recording available yet.");
+    if (!state.recordingBlob) {
+      alert("No recording is available.");
       return;
     }
-    const ext = (state.videoBlob.type || "").includes("mp4") ? "mp4" : "webm";
-    downloadBlob(state.videoBlob, fileId() + "_recording." + ext);
+    const ext = state.recordingBlob.type.includes("mp4") ? "mp4" : "webm";
+    downloadBlob(state.recordingBlob, fileBase() + "_recording." + ext);
   }
 
-  function setupTaskStep(slot) {
-    state.currentDesignSlot = slot;
-    const t = state.tasks[slot];
-    $("task-title").textContent = `Design ${slot} — registration task`;
-    $("task-intro").textContent = `Open Design ${slot}, complete the task with fictional data, then return here. Timer starts when you open the design.`;
-    $("task-hint").textContent = designHint(t.code);
-    $("btn-open-design").textContent = `Open Design ${slot}`;
-    $("btn-finish-task").disabled = true;
-    document.querySelectorAll('input[name="task-complete"]').forEach((el) => {
-      el.checked = false;
+  function updateMailto() {
+    const subject = encodeURIComponent(
+      "AB/BA study results — " + state.participantId + " (" + state.order + ")"
+    );
+    const body = encodeURIComponent(
+      "Hello Maja,\n\nPlease find attached:\n1) " +
+        fileBase() +
+        "_results.json\n2) " +
+        fileBase() +
+        "_recording.webm\n\nParticipant ID: " +
+        state.participantId +
+        "\nOrder: " +
+        state.order +
+        "\n\nThank you."
+    );
+    $("btn-mailto").href =
+      "mailto:" + S.researcherEmail + "?subject=" + subject + "&body=" + body;
+  }
+
+  // ——— Event wiring ———
+
+  document
+    .querySelectorAll('input[name="task-complete"]')
+    .forEach((r) => {
+      r.addEventListener("change", () => {
+        $("btn-finish-task").disabled = !radioValue("task-complete");
+      });
     });
-    $("task-error").classList.add("hidden");
-    $("timer-display").textContent = formatMs(t.task_time_ms || 0);
-    showStep("task");
-  }
 
-  function setupSusStep(slot) {
-    state.currentDesignSlot = slot;
-    $("sus-title").textContent = `Usability questionnaire — Design ${slot}`;
-    $("sus-intro").textContent = `Thinking only about Design ${slot} you just used, how much do you agree with each statement?`;
-    buildSusForm(slot);
-    $("sus-error").classList.add("hidden");
-    showStep("sus");
-  }
-
-  $("btn-consent-continue").addEventListener("click", () => {
-    const pid = $("participant-id").value.trim();
-    const study = document.querySelector('input[name="consent-study"]:checked');
-    const rec = document.querySelector('input[name="consent-record"]:checked');
-    const err = $("consent-error");
-    err.classList.add("hidden");
-
+  $("btn-consent").addEventListener("click", () => {
+    hide($("consent-error"));
+    const c = radioValue("consent");
+    if (!c) {
+      $("consent-error").textContent = "Please select Yes or No.";
+      show($("consent-error"));
+      return;
+    }
+    if (c === "no") {
+      go("step-declined");
+      return;
+    }
+    state.consent = true;
+    state.startedAt = new Date().toISOString();
+    let pid = ($("participant-id").value || "").trim();
     if (!pid) {
-      err.textContent = "Please enter your participant ID.";
-      err.classList.remove("hidden");
-      return;
+      pid =
+        "P" +
+        Date.now().toString(36).toUpperCase().slice(-6) +
+        Math.floor(Math.random() * 90 + 10);
     }
-    if (!study || study.value !== "yes" || !rec || rec.value !== "yes") {
-      showStep("declined");
-      return;
-    }
-
     state.participantId = pid;
-    if (!state.orderFromQuery || !state.order) {
-      applyOrder(assignOrderFromId(pid));
-    }
+    assignOrder();
     $("order-label").textContent =
-      "Design 1 → Design 2 (session code " + state.order + ")";
-    persist();
-    showStep("share");
+      state.order === "AB"
+        ? "Version A first, then Version B"
+        : "Version B first, then Version A";
+    go("step-share", 2);
   });
 
-  $("btn-start-share").addEventListener("click", startShare);
+  $("btn-start-share").addEventListener("click", () => startRecording());
 
-  $("btn-share-continue").addEventListener("click", () => {
-    if (!state.recorder || state.recorder.state === "inactive") {
-      $("share-error").textContent = "Please allow screen recording first.";
-      $("share-error").classList.remove("hidden");
-      return;
-    }
-    setupTaskStep(1);
+  $("btn-share-next").addEventListener("click", () => {
+    state.seqIndex = 0;
+    prepareTaskUI();
+    go("step-task", 3);
   });
 
-  $("btn-open-design").addEventListener("click", () => {
-    const slot = state.currentDesignSlot;
-    window.open(state.tasks[slot].url, "_blank", "noopener,noreferrer");
-    startTimer(slot);
-    $("btn-finish-task").disabled = false;
+  $("btn-open-version").addEventListener("click", () => {
+    const v = currentVersion();
+    window.open(S.urls[v], "_blank", "noopener,noreferrer");
+    startTimer();
   });
 
   $("btn-finish-task").addEventListener("click", () => {
-    const slot = state.currentDesignSlot;
-    const completion = document.querySelector(
-      'input[name="task-complete"]:checked'
-    );
-    const err = $("task-error");
-    err.classList.add("hidden");
-    if (!state.tasks[slot].openedAt && state.tasks[slot].startPerf == null) {
-      err.textContent = "Please open the design first.";
-      err.classList.remove("hidden");
+    hide($("task-error"));
+    const done = radioValue("task-complete");
+    if (!done) {
+      $("task-error").textContent = "Please indicate whether you completed the task.";
+      show($("task-error"));
       return;
     }
-    if (!completion) {
-      err.textContent = "Please indicate whether you completed the design.";
-      err.classList.remove("hidden");
+    if (!state.timerStartedAt && state.timerAccumMs === 0) {
+      $("task-error").textContent =
+        "Please open the version (starts the timer) before continuing.";
+      show($("task-error"));
       return;
     }
-    stopTimer(slot);
-    state.tasks[slot].completion = completion.value;
-    persist();
-    setupSusStep(slot);
+    const v = currentVersion();
+    const ms = stopTimer();
+    state.versions[v].completed = done;
+    state.versions[v].taskTimeMs = ms;
+    prepareSUSUI();
+    go("step-sus", state.seqIndex === 0 ? 4 : 6);
   });
 
-  $("btn-sus-continue").addEventListener("click", async () => {
-    const slot = state.currentDesignSlot;
-    const err = $("sus-error");
-    err.classList.add("hidden");
-    if (!readSus(slot)) {
-      err.textContent = "Please answer all 10 statements.";
-      err.classList.remove("hidden");
+  $("btn-sus-next").addEventListener("click", async () => {
+    hide($("sus-error"));
+    const map = collectSUS();
+    if (!map) {
+      $("sus-error").textContent = "Please answer all 10 statements.";
+      show($("sus-error"));
       return;
     }
-    if (slot === 1) {
-      setupTaskStep(2);
-      return;
+    const v = currentVersion();
+    state.versions[v].sus = map;
+    state.versions[v].susScore = scoreSUS(map);
+
+    if (state.seqIndex === 0) {
+      state.seqIndex = 1;
+      prepareTaskUI();
+      go("step-task", 5);
+    } else {
+      await stopRecording();
+      go("step-stop-rec", 7);
     }
-    $("download-status").textContent = "Finalising recording…";
-    showStep("download");
-    await stopRecorder();
-    $("download-status").textContent = state.videoBlob
-      ? "Recording ready. Download both files before continuing."
-      : "No video blob (share may have ended early). Still download the JSON.";
   });
 
-  $("btn-dl-video").addEventListener("click", downloadVideo);
-  $("btn-dl-json").addEventListener("click", downloadJson);
-  $("btn-dl-video-again").addEventListener("click", downloadVideo);
-  $("btn-dl-json-again").addEventListener("click", downloadJson);
+  $("btn-after-stop").addEventListener("click", () => go("step-compare", 8));
 
-  $("btn-after-download").addEventListener("click", () => showStep("compare"));
-
-  $("btn-finish-study").addEventListener("click", () => {
-    const err = $("compare-error");
-    err.classList.add("hidden");
-    const pref = document.querySelector('input[name="pref"]:checked');
-    const why = $("pref-why").value.trim();
-    const diff = $("pref-diff").value.trim();
-    if (!pref || !why || !diff) {
-      err.textContent = "Please complete the three comparison questions.";
-      err.classList.remove("hidden");
+  $("btn-compare-next").addEventListener("click", () => {
+    hide($("compare-error"));
+    const overall = radioValue("pref-overall");
+    const easier = radioValue("pref-easier");
+    if (!overall || !easier) {
+      $("compare-error").textContent =
+        "Please answer the required preference questions.";
+      show($("compare-error"));
       return;
     }
     state.comparative = {
-      preference: pref.value,
-      preference_why: why,
-      main_difference: diff,
+      preferredOverall: overall,
+      preferredOverallWhy: $("pref-overall-why").value.trim(),
+      easierFlow: easier,
+      easierFlowWhy: $("pref-easier-why").value.trim(),
+      preferRealLife: radioValue("pref-real"),
+      preferRealLifeWhy: $("pref-real-why").value.trim(),
     };
-    state.demographics = {
-      role: $("demo-role").value,
-      b2b_experience: $("demo-b2b").value,
-      device: $("demo-device").value,
-      country: $("demo-country").value.trim(),
-      age_group: $("demo-age").value,
-      follow_up_interview: $("demo-interview").value,
-      email: $("demo-email").value.trim(),
-    };
-    persist();
-    downloadJson();
-    try {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch (_) {
-      /* ignore */
-    }
-    showStep("done");
+    go("step-background", 9);
   });
 
+  $("btn-background-next").addEventListener("click", () => {
+    hide($("bg-error"));
+    let role = radioValue("role");
+    if (role === "Other") {
+      role = ($("role-other") && $("role-other").value.trim()) || "Other";
+    }
+    let device = radioValue("device");
+    if (device === "Other") {
+      device = ($("device-other") && $("device-other").value.trim()) || "Other";
+    }
+    const b2b = radioValue("b2b");
+    const prior = radioValue("prior");
+    const age = radioValue("age");
+    const country = ($("demo-country").value || "").trim();
+    if (!role || !b2b || !prior || !device || !age || !country) {
+      $("bg-error").textContent = "Please complete all required background questions.";
+      show($("bg-error"));
+      return;
+    }
+    state.background = { role, b2bExperience: b2b, priorRegistration: prior, device, country, age };
+    state.finishedAt = new Date().toISOString();
+    updateMailto();
+    $("download-status").textContent =
+      "Participant " +
+      state.participantId +
+      " · Order " +
+      state.order +
+      " · SUS A: " +
+      state.versions.A.susScore +
+      " · SUS B: " +
+      state.versions.B.susScore;
+    go("step-download", 9);
+    // Auto-download to reduce friction
+    setTimeout(() => {
+      downloadJSON();
+      if (state.recordingBlob) downloadVideo();
+    }, 400);
+  });
+
+  $("btn-dl-json").addEventListener("click", downloadJSON);
+  $("btn-dl-video").addEventListener("click", downloadVideo);
+  $("btn-dl-json-again").addEventListener("click", downloadJSON);
+  $("btn-dl-video-again").addEventListener("click", downloadVideo);
+
+  $("btn-finish").addEventListener("click", () => {
+    state.uploadLink = ($("upload-link").value || "").trim();
+    // Refresh JSON with upload link if provided
+    if (state.uploadLink) downloadJSON();
+    go("step-done");
+  });
+
+  // Init
   fillTestData();
-  applyQuery();
-  showStep("consent");
+  buildRadioGroup("role-options", "role", S.roles);
+  buildRadioGroup("b2b-options", "b2b", S.b2bExperience);
+  buildRadioGroup("prior-options", "prior", S.priorRegistration);
+  buildRadioGroup("device-options", "device", S.devices);
+  buildRadioGroup("age-options", "age", S.ages);
+  setProgress(1);
+
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    show($("mobile-warn"));
+  } else {
+    hide($("mobile-warn"));
+  }
 })();
