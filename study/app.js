@@ -723,7 +723,6 @@
       $("consent-error").textContent =
         "Please use Google Chrome or Microsoft Edge on a desktop or laptop to continue.";
       show($("consent-error"));
-      show($("mobile-warn"));
       return;
     }
     const c = radioValue("consent");
@@ -875,10 +874,4 @@
   buildRadioGroup("prior-options", "prior", S.priorRegistration);
   buildRadioGroup("age-options", "age", S.ages);
   setProgress(1);
-
-  if (!isSupportedStudyEnvironment()) {
-    show($("mobile-warn"));
-  } else {
-    hide($("mobile-warn"));
-  }
 })();
