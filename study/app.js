@@ -236,6 +236,7 @@
 
   function buildRadioGroup(containerId, name, options) {
     const root = $(containerId);
+    if (!root || !Array.isArray(options)) return;
     root.innerHTML = "";
     options.forEach((opt) => {
       const lab = document.createElement("label");
@@ -872,6 +873,9 @@
   buildRadioGroup("role-options", "role", S.roles);
   buildRadioGroup("b2b-options", "b2b", S.b2bExperience);
   buildRadioGroup("prior-options", "prior", S.priorRegistration);
-  buildRadioGroup("age-options", "age", S.ages);
+  // Age options are in the HTML; rebuild from config when available
+  if (S.ages && S.ages.length) {
+    buildRadioGroup("age-options", "age", S.ages);
+  }
   setProgress(1);
 })();
