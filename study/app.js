@@ -505,48 +505,6 @@
     });
   }
 
-  function downloadBlob(blob, filename) {
-    if (!blob || !blob.size) {
-      throw new Error("Empty file");
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.rel = "noopener";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      a.remove();
-      URL.revokeObjectURL(url);
-    }, 2500);
-  }
-
-  function downloadJSON() {
-    const data = buildResults();
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    downloadBlob(blob, fileBase() + "_results.json");
-  }
-
-  function downloadVideos() {
-    let any = false;
-    ["A", "B"].forEach((v) => {
-      const blob = state.versions[v].recordingBlob;
-      if (!blob || !blob.size) return;
-      any = true;
-      const ext = (blob.type || "").includes("mp4") ? "mp4" : "webm";
-      downloadBlob(blob, fileBase() + "_Version" + v + "_recording." + ext);
-    });
-    if (!any) {
-      alert(
-        "No form recordings are available. Make sure you shared each form’s Chrome tab when prompted."
-      );
-    }
-  }
-
   function collectSUS() {
     const map = {};
     for (const item of S.susItems) {
@@ -605,107 +563,39 @@
     };
   }
 
-  function updateMailto() {
-    const subject = encodeURIComponent(
-      "AB/BA study results — " + state.participantId + " (" + state.order + ")"
-    );
-    const body = encodeURIComponent(
-      "Hello Maja,\n\nPlease find attached:\n1) " +
-        fileBase() +
-        "_results.json\n2) " +
-        fileBase() +
-        "_VersionA_recording.webm\n3) " +
-        fileBase() +
-        "_VersionB_recording.webm\n\nParticipant ID: " +
-        state.participantId +
-        "\nOrder: " +
-        state.order +
-        "\n\nThank you."
-    );
-    const mail = $("btn-mailto");
-    if (mail) {
-      mail.href =
-        "mailto:" + S.researcherEmail + "?subject=" + subject + "&body=" + body;
-    }
-  }
-
-  function fallbackDownloadBoth() {
-    try {
-      downloadJSON();
-    } catch (_) {}
-    try {
-      downloadVideos();
-    } catch (_) {}
-  }
-
   async function encodeVideosForUpload(cfg) {
     const max = cfg.maxVideoBytes || 28 * 1024 * 1024;
     const videos = [];
-    const skipped = [];
     for (const v of ["A", "B"]) {
       const blob = state.versions[v].recordingBlob;
       if (!blob || !blob.size) continue;
-      if (blob.size > max) {
-        skipped.push(v);
-        continue;
-      }
+      if (blob.size > max) continue;
       videos.push({
         version: v,
         base64: await blobToBase64(blob),
         mime: blob.type || "video/webm",
       });
     }
-    return { videos: videos, skipped: skipped };
+    return { videos: videos };
   }
 
   async function uploadToDrive() {
     const cfg = window.STUDY_UPLOAD || {};
-    const status = $("upload-status");
-    const setStatus = (msg, isError) => {
-      if (!status) return;
-      status.textContent = msg;
-      status.classList.toggle("error", !!isError);
-      status.classList.toggle("ok", !isError);
-      show(status);
-    };
-
     if (!cfg.endpoint) {
-      setStatus(
-        "Drive upload is not configured yet on this site. Downloading files now — please email them to the researcher.",
-        true
-      );
-      fallbackDownloadBoth();
+      console.warn("STUDY_UPLOAD.endpoint is not set; results were not uploaded.");
       return { ok: false, reason: "no-endpoint" };
     }
 
-    const resultsJson = JSON.stringify(buildResults(), null, 2);
-    setStatus("Preparing form recordings for upload…");
-    const { videos, skipped } = await encodeVideosForUpload(cfg);
-    if (skipped.length) {
-      setStatus(
-        "Some videos are large and will download locally: Version " +
-          skipped.join(", ") +
-          ". Uploading JSON and remaining videos…"
-      );
-      skipped.forEach((v) => {
-        try {
-          const blob = state.versions[v].recordingBlob;
-          const ext = (blob.type || "").includes("mp4") ? "mp4" : "webm";
-          downloadBlob(blob, fileBase() + "_Version" + v + "_recording." + ext);
-        } catch (_) {}
-      });
-    }
-
-    setStatus("Sending to Google Drive…");
-    const payload = {
-      secret: cfg.secret,
-      participantId: state.participantId,
-      order: state.order,
-      resultsJson: resultsJson,
-      videos: videos,
-    };
-
     try {
+      const resultsJson = JSON.stringify(buildResults(), null, 2);
+      const { videos } = await encodeVideosForUpload(cfg);
+      const payload = {
+        secret: cfg.secret,
+        participantId: state.participantId,
+        order: state.order,
+        resultsJson: resultsJson,
+        videos: videos,
+      };
       const res = await fetch(cfg.endpoint, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -720,29 +610,10 @@
         throw new Error("Unexpected response from upload service");
       }
       if (!data.ok) throw new Error(data.error || "Upload failed");
-
       state.driveUpload = data;
-      let msg =
-        "Uploaded to Google Drive. JSON: " +
-        (data.json && data.json.name ? data.json.name : "saved");
-      const uploaded = data.videos || (data.video ? [data.video] : []);
-      if (uploaded.length) {
-        msg +=
-          " · Videos: " +
-          uploaded.map((u) => u.name || "recording").join(", ");
-      } else if (!videos.length) {
-        msg += " · No form videos uploaded — use Download form recordings.";
-      }
-      setStatus(msg, false);
       return { ok: true, data: data };
     } catch (err) {
-      setStatus(
-        "Automatic Drive upload failed (" +
-          (err && err.message ? err.message : "error") +
-          "). Downloading files instead — please email them or add them to the Drive folder.",
-        true
-      );
-      fallbackDownloadBoth();
+      console.warn("Drive upload failed", err);
       return { ok: false, error: err };
     }
   }
@@ -893,32 +764,10 @@
     }
     state.background = { role, b2bExperience: b2b, priorRegistration: prior, device, country, age };
     state.finishedAt = new Date().toISOString();
-    updateMailto();
-    $("download-status").textContent =
-      "Participant " +
-      state.participantId +
-      " · Order " +
-      state.order +
-      " · SUS A: " +
-      state.versions.A.susScore +
-      " · SUS B: " +
-      state.versions.B.susScore;
-    go("step-download", 9);
+    $("btn-background-next").disabled = true;
+    go("step-done", 9);
+    // Silent upload to Drive — no participant download UI
     uploadToDrive();
-  });
-
-  $("btn-dl-json").addEventListener("click", downloadJSON);
-  $("btn-dl-video").addEventListener("click", downloadVideos);
-  $("btn-dl-json-again").addEventListener("click", downloadJSON);
-  $("btn-dl-video-again").addEventListener("click", downloadVideos);
-  const btnUpload = $("btn-upload-drive");
-  if (btnUpload) {
-    btnUpload.addEventListener("click", () => uploadToDrive());
-  }
-
-  $("btn-finish").addEventListener("click", () => {
-    state.uploadLink = ($("upload-link").value || "").trim();
-    go("step-done");
   });
 
   // Init

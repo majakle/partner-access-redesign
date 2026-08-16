@@ -278,14 +278,13 @@
         </button>
       </section>
 
-      <!-- 7 Stop recording / download prep -->
+      <!-- 7 After both tasks -->
       <section id="step-stop-rec" class="step hidden" data-step="7">
-        <h1>Form recordings complete</h1>
+        <h1>Both registration tasks complete</h1>
         <div class="card prose">
           <p>
-            Both registration recordings have stopped. Next you will answer a
-            few comparative questions, then your results and the two form
-            recordings will be sent to the researcher.
+            Next you will answer a few comparative questions and some brief
+            background questions.
           </p>
         </div>
         <button type="button" class="btn primary" id="btn-after-stop">
@@ -404,61 +403,19 @@
 
         <p id="bg-error" class="error hidden"></p>
         <button type="button" class="btn primary" id="btn-background-next">
-          Continue — send results
-        </button>
-      </section>
-
-      <!-- Download / upload -->
-      <section id="step-download" class="step hidden" data-step="10">
-        <h1>Sending your results</h1>
-        <div class="card prose">
-          <p>
-            Your answers and the Version A / Version B form recordings are being
-            uploaded automatically to the researcher’s Google Drive folder. You
-            can also download a copy below if you want a backup.
-          </p>
-          <p id="download-status" class="hint"></p>
-          <p id="upload-status" class="hint" aria-live="polite"></p>
-        </div>
-        <div class="btn-row">
-          <button type="button" class="btn primary" id="btn-upload-drive">
-            Upload to Drive again
-          </button>
-          <button type="button" class="btn" id="btn-dl-json">
-            Download results JSON
-          </button>
-          <button type="button" class="btn" id="btn-dl-video">
-            Download form recordings
-          </button>
-          <a class="btn" id="btn-mailto" href="#">Email researcher</a>
-        </div>
-        <label class="field">
-          <span
-            >Optional: paste a link if you uploaded files yourself</span
-          >
-          <input id="upload-link" type="text" placeholder="https://…" />
-        </label>
-        <button type="button" class="btn primary" id="btn-finish">
-          Finish study
+          Finish
         </button>
       </section>
 
       <section id="step-done" class="step hidden">
         <h1>Thank you</h1>
         <div class="card prose">
+          <p>Thank you for participating in this study.</p>
           <p>
-            Thank you for participating. If upload did not succeed, please
-            download and email the JSON and both form recordings to
+            If you have any further questions, please contact
             <a href="mailto:maja.skale@student.um.si">maja.skale@student.um.si</a>.
           </p>
-          <div class="btn-row">
-            <button type="button" class="btn" id="btn-dl-json-again">
-              Download results JSON again
-            </button>
-            <button type="button" class="btn" id="btn-dl-video-again">
-              Download form recordings again
-            </button>
-          </div>
+          <p class="hint">You can close this page.</p>
         </div>
       </section>
 

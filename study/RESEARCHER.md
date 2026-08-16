@@ -4,10 +4,10 @@
 
 ## How participants work
 
-1. Forms open in a **new browser tab** (not embedded).
-2. For each version, the browser asks to share a tab — participants choose **Chrome Tab → that form tab** only.
-3. You get **two short recordings** (Version A + Version B). Questionnaires are not recorded.
-4. Timers stop via `postMessage` when Version A shows success or Version B reaches confirmation.
+1. Forms open in a **new browser tab**.
+2. For each version they click **Start recording & open form**, then share **Window → Google Chrome**.
+3. Recordings and answers upload **silently to Drive** when they finish — no download/email step for participants.
+4. End screen is thank-you only, with your contact email for questions.
 
 ## Auto-upload to Google Drive (required once)
 
@@ -26,7 +26,7 @@ https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
 
 > Please open this link on a laptop/desktop with Chrome or Edge:  
 > https://majakle.github.io/partner-access-redesign/study/  
-> Use Chrome or Edge. For each version click **Start recording & open form**, choose **Window → Google Chrome**, then complete the form. On Mac, enable Chrome under System Settings → Privacy & Security → Screen Recording.
+> For each version click **Start recording & open form**, choose **Window → Google Chrome**, then complete the form. On Mac, enable Chrome under System Settings → Privacy & Security → Screen Recording.
 
 ## SUS scoring (already in JSON)
 
