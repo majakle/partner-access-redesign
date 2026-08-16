@@ -18,6 +18,7 @@
     recordingMime: "video/webm",
     recordingVersion: null,
     formWindow: null,
+    formOpened: false,
     taskAutoFinished: false,
     versions: {
       A: {
@@ -225,6 +226,8 @@
     });
     $("btn-open-version").textContent = "Open form & start timer";
     $("btn-open-version").disabled = false;
+    hide($("btn-share-form"));
+    $("btn-share-form").disabled = false;
     $("task-hint").textContent = S.hints[v] || "";
     document
       .querySelectorAll('input[name="task-complete"]')
@@ -240,6 +243,7 @@
     state.timerStartedAt = null;
     state.timerAccumMs = 0;
     state.taskAutoFinished = false;
+    state.formOpened = false;
   }
 
   function onTaskAutoComplete() {
@@ -258,7 +262,7 @@
     show($("timer-auto-msg"));
   }
 
-  async function loadFormAndStartTimer() {
+  function openFormAndStartTimer() {
     const v = currentVersion();
     hide($("task-error"));
     hide($("share-error"));
@@ -272,29 +276,56 @@
       return;
     }
     state.formWindow = win;
+    state.formOpened = true;
 
-    const status = $("form-open-status");
-    if (status) {
-      status.textContent =
-        "Form opened in a new tab. In the share dialog, choose Chrome Tab → Version " +
-        v +
-        " form tab (not this study page).";
-      show(status);
-    }
+    // Return focus to the study tab so the participant can click Share
+    try {
+      window.focus();
+    } catch (_) {}
 
     startTimer();
     $("btn-open-version").disabled = true;
 
+    const status = $("form-open-status");
+    if (status) {
+      status.textContent =
+        "Form opened. Stay on this study tab and click “Share form tab to record”, then choose Chrome Tab → Version " +
+        v +
+        " form (not this page).";
+      show(status);
+    }
+    show($("btn-share-form"));
+    $("btn-share-form").disabled = false;
+  }
+
+  async function shareFormTabRecording() {
+    const v = currentVersion();
+    hide($("share-error"));
+    hide($("share-ok"));
+
+    if (!state.formOpened) {
+      $("share-error").textContent =
+        "Open the form first, then share that form’s tab to record.";
+      show($("share-error"));
+      return;
+    }
+
+    // Fresh user click — required for Chrome to show the share picker
+    $("btn-share-form").disabled = true;
     try {
       await startFormRecording(v);
       show($("share-ok"));
+      hide($("form-open-status"));
+      $("btn-share-form").textContent = "Recording…";
     } catch (err) {
+      const name = err && err.name ? err.name : "";
+      const detail = err && err.message ? err.message : "blocked";
       $("share-error").textContent =
-        "Screen share was cancelled or blocked. You can still complete the form; try Open form again if you need a recording, or continue without one.";
+        "Could not start screen share (" +
+        (name || detail) +
+        "). Click “Share form tab to record” again and choose Chrome Tab → the form tab. Do not choose this study page.";
       show($("share-error"));
-      // Allow retry of share without resetting timer / form
-      $("btn-open-version").disabled = false;
-      $("btn-open-version").textContent = "Share form tab to record";
+      $("btn-share-form").disabled = false;
     }
   }
 
@@ -334,21 +365,14 @@
   }
 
   async function startFormRecording(version) {
-    // Allow a new recording after a previous stop
     state._stoppingPromise = null;
     state.recordingVersion = version;
     state.chunks = [];
 
+    // Minimal constraints — extra options can prevent the picker on some Chrome builds
     const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: {
-        frameRate: 15,
-        displaySurface: "browser",
-      },
+      video: true,
       audio: false,
-      // Do NOT prefer current (study) tab — participant must pick the form tab
-      selfBrowserSurface: "include",
-      surfaceSwitching: "include",
-      systemAudio: "exclude",
     });
     state.stream = stream;
 
@@ -728,7 +752,11 @@
   });
 
   $("btn-open-version").addEventListener("click", () => {
-    loadFormAndStartTimer();
+    openFormAndStartTimer();
+  });
+
+  $("btn-share-form").addEventListener("click", () => {
+    shareFormTabRecording();
   });
 
   $("btn-finish-task").addEventListener("click", async () => {

@@ -26,7 +26,7 @@ https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
 
 > Please open this link on a laptop/desktop with Chrome or Edge:  
 > https://majakle.github.io/partner-access-redesign/study/  
-> Allow pop-ups. When each form opens, share **that form’s Chrome tab** (not the study page, not Entire Screen).
+> Allow pop-ups. Open each form, then click **Share form tab to record** and choose **that form’s Chrome tab** (not the study page, not Entire Screen).
 
 ## SUS scoring (already in JSON)
 

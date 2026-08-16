@@ -158,11 +158,10 @@
         <div class="card prose">
           <p>
             Each registration form opens in a <strong>new browser tab</strong>.
-            When a form opens, your browser will ask what to share. Choose
-            <strong>Chrome Tab</strong> (or “A tab”), then select the
-            <strong>form tab that just opened</strong> — not this study page and
-            not your entire screen. That way only the registration flow is
-            recorded.
+            After it opens, click <strong>Share form tab to record</strong>. In
+            the browser dialog, choose <strong>Chrome Tab</strong> (or “A tab”),
+            then select the <strong>form tab</strong> — not this study page and
+            not your entire screen.
           </p>
           <p>
             You will share once for Version A and once for Version B. Keep this
@@ -195,17 +194,18 @@
             personal or company information.
           </p>
           <p>
-            Click <strong>Open form &amp; start timer</strong>. The form opens in
-            a new tab; then share <strong>that form tab</strong> when asked. The
-            timer stops automatically when you reach the confirmation / success
-            screen. Return here afterward.
+            Click <strong>Open form &amp; start timer</strong> — the form opens in
+            a new tab. Then click <strong>Share form tab to record</strong> and
+            choose <strong>Chrome Tab → that form tab</strong> (not this study
+            page). The timer stops automatically when you reach the confirmation /
+            success screen. Return here afterward.
           </p>
         </div>
 
         <div class="layout-task">
           <aside class="card test-data">
             <h2>Fictional test information</h2>
-            <p class="hint">Use only these values (keep this tab open).</p>
+            <p class="hint">Use only these values (keep this study tab open).</p>
             <dl id="test-data-list"></dl>
             <p id="task-hint" class="hint"></p>
 
@@ -224,9 +224,18 @@
             <p id="share-ok" class="ok hidden">
               Recording the form tab. Complete the form, then return here.
             </p>
-            <button type="button" class="btn primary" id="btn-open-version">
-              Open form &amp; start timer
-            </button>
+            <div class="btn-row">
+              <button type="button" class="btn primary" id="btn-open-version">
+                Open form &amp; start timer
+              </button>
+              <button
+                type="button"
+                class="btn primary hidden"
+                id="btn-share-form"
+              >
+                Share form tab to record
+              </button>
+            </div>
 
             <fieldset class="fieldset">
               <legend>
