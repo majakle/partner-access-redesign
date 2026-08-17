@@ -295,7 +295,17 @@
     const auto = !!(opts && opts.auto);
     const v = currentVersion();
     const ms = stopTimer();
-    await stopRecording(v);
+    const blob = await stopRecording(v);
+    if (!blob || !blob.size) {
+      state.taskAutoFinished = false;
+      $("share-error").textContent =
+        "Screen recording is required. Click “Start recording & open form” again, share Window → Google Chrome, then complete the task.";
+      show($("share-error"));
+      $("btn-open-version").disabled = false;
+      $("btn-open-version").textContent = "Start recording & open form";
+      $("btn-finish-task").disabled = !radioValue("task-complete");
+      return;
+    }
     const reached = completedValue === "Yes";
     state.versions[v].completed = completedValue;
     state.versions[v].reachedConfirmationPage = reached;
@@ -360,8 +370,6 @@
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
       $("share-error").textContent = shareHelpText({ name: "Unsupported" });
       show($("share-error"));
-      // Still allow completing the task without video
-      openFormWindowOnly(v);
       return;
     }
 
@@ -369,7 +377,6 @@
 
     // CRITICAL: call getDisplayMedia first, while this click is still a valid user gesture.
     // Opening a tab before share consumes the gesture and Chrome shows no picker.
-    let recorded = false;
     try {
       const status = $("form-open-status");
       if (status) {
@@ -378,27 +385,18 @@
         show(status);
       }
       await startFormRecording(v);
-      recorded = true;
       show($("share-ok"));
     } catch (err) {
       $("share-error").textContent = shareHelpText(err);
       show($("share-error"));
+      hide($("form-open-status"));
       $("btn-open-version").disabled = false;
-      // Open the form anyway so the study can continue without video
+      return;
     }
 
     openFormWindowOnly(v);
-    if (recorded) {
-      hide($("form-open-status"));
-      $("btn-open-version").textContent = "Recording… form opened";
-    } else {
-      const status = $("form-open-status");
-      if (status) {
-        status.textContent =
-          "Form opened without recording. Fix screen-share permission, then click the button again (or continue without video).";
-        show(status);
-      }
-    }
+    hide($("form-open-status"));
+    $("btn-open-version").textContent = "Recording… form opened";
   }
 
   function openFormWindowOnly(v) {
