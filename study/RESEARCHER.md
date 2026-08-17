@@ -1,6 +1,6 @@
 # Researcher guide — AB/BA study app
 
-**Live URL:** https://majakle.github.io/partner-access-redesign/study/
+**Live URL:** https://majakle.github.io/registration-study/
 
 ## How participants work
 
@@ -27,7 +27,7 @@ https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
 ### Invite text
 
 > Please open this link on a laptop/desktop with Chrome or Edge only:  
-> https://majakle.github.io/partner-access-redesign/study/  
+> https://majakle.github.io/registration-study/  
 > For each version click **Start recording & open form**, choose **Window → Google Chrome**, then complete the form. Keep the page open until you see that your responses have been saved.
 
 ## SUS scoring (already in JSON)

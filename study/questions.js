@@ -6,7 +6,7 @@ window.STUDY = {
   researcherEmail: "maja.skale@student.um.si",
   urls: {
     A: "https://majakle.github.io/sign-up/?signup=yes",
-    B: "https://majakle.github.io/partner-access-redesign/",
+    B: "https://majakle.github.io/registration-study/register/",
   },
   hints: {
     A: "Complete the registration process using the fictional information provided.",
