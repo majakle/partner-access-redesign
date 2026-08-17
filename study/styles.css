@@ -263,6 +263,30 @@ textarea {
   font-weight: 600;
 }
 
+.upload-progress {
+  margin: 1rem 0 0.25rem;
+}
+
+.upload-progress-track {
+  height: 0.5rem;
+  background: #e5e5e5;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--ink);
+  transition: width 0.35s ease;
+}
+
+.upload-progress-label {
+  margin: 0.4rem 0 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .ok {
   color: var(--ink);
   font-weight: 600;

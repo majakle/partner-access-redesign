@@ -62,18 +62,6 @@
           <a class="btn btn-primary" id="btn-back-home" href="index.html"
             >Back to homepage</a
           >
-          <button
-            type="button"
-            class="btn btn-primary hidden"
-            id="btn-return-study"
-          >
-            Return to the evaluation
-          </button>
-          <p id="return-hint" class="lede hidden" style="margin-top: 0.75rem">
-            You can read this page, then return. This tab will go back to the
-            evaluation automatically in a few seconds, or click the button when
-            you are ready.
-          </p>
         </div>
       </section>
     </main>
@@ -81,6 +69,63 @@
         <footer class="site-footer">
       <p>© Company XYZ</p>
     </footer>
+
+    <div id="study-return-bar" class="study-return-bar hidden" role="region" aria-label="Study controls">
+      <p class="study-return-bar__text">
+        Study task complete — this tab returns to the evaluation automatically,
+        or click when ready.
+      </p>
+      <button type="button" class="study-return-bar__btn" id="btn-return-study">
+        Return to the evaluation
+      </button>
+    </div>
+
+    <style>
+      .study-return-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10000;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem 1rem;
+        padding: 0.65rem 1rem;
+        background: #111;
+        color: #f5f5f5;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.8125rem;
+        line-height: 1.35;
+        box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.12);
+      }
+      .study-return-bar.hidden {
+        display: none;
+      }
+      .study-return-bar__text {
+        margin: 0;
+        flex: 1 1 14rem;
+        max-width: 40rem;
+      }
+      .study-return-bar__btn {
+        appearance: none;
+        border: 1px solid #f5f5f5;
+        background: transparent;
+        color: #f5f5f5;
+        font: inherit;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+      }
+      .study-return-bar__btn:hover {
+        background: #f5f5f5;
+        color: #111;
+      }
+      body.study-return-bar-visible {
+        padding-bottom: 4.5rem;
+      }
+    </style>
     <script src="mockups-nav.js"></script>
     <script>
       (function () {
@@ -117,17 +162,15 @@
         var fromStudy = !!(window.opener && !window.opener.closed);
         if (fromStudy) {
           notifyStudy();
-          var home = document.getElementById("btn-back-home");
+          var bar = document.getElementById("study-return-bar");
           var ret = document.getElementById("btn-return-study");
-          var hint = document.getElementById("return-hint");
-          if (home) home.classList.add("hidden");
+          if (bar) bar.classList.remove("hidden");
+          document.body.classList.add("study-return-bar-visible");
           if (ret) {
-            ret.classList.remove("hidden");
             ret.addEventListener("click", function () {
               returnToStudy();
             });
           }
-          if (hint) hint.classList.remove("hidden");
           setTimeout(function () {
             returnToStudy();
           }, RETURN_DELAY_MS);

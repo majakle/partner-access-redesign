@@ -466,6 +466,24 @@
           <p id="submit-status" aria-live="polite">
             Submitting your responses… Please keep this page open.
           </p>
+          <div
+            class="upload-progress"
+            id="upload-progress"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            aria-labelledby="submit-status"
+          >
+            <div class="upload-progress-track">
+              <div
+                class="upload-progress-fill"
+                id="upload-progress-fill"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="upload-progress-label" id="upload-progress-label">0%</p>
+          </div>
           <p id="submit-error" class="error hidden"></p>
           <button type="button" class="btn primary hidden" id="btn-retry-upload">
             Try uploading again
@@ -492,8 +510,8 @@
       </section>
     </main>
 
-    <script src="questions.js?v=20260817b"></script>
-    <script src="config.js?v=20260817b"></script>
-    <script src="app.js?v=20260817b"></script>
+    <script src="questions.js?v=20260817c"></script>
+    <script src="config.js?v=20260817c"></script>
+    <script src="app.js?v=20260817c"></script>
   </body>
 </html>

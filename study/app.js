@@ -680,7 +680,8 @@
       // Always persist questionnaire JSON first (includes recordingStatus).
       setSubmitUi(
         "pending",
-        "Saving your questionnaire responses… Please keep this page open."
+        "Saving your questionnaire responses… Please keep this page open.",
+        12
       );
       const resultsJson = JSON.stringify(buildResults(), null, 2);
       const jsonResult = await postToUploadBridge({
@@ -691,12 +692,14 @@
         fileBase: uploadBase,
         resultsJson: resultsJson,
       });
+      setUploadProgress(34);
 
       const videoResults = [];
-      for (const [v, info] of [
-        ["A", infoA],
-        ["B", infoB],
-      ]) {
+      const videoSteps = [
+        ["A", infoA, 67],
+        ["B", infoB, 100],
+      ];
+      for (const [v, info, donePct] of videoSteps) {
         if (info.recordingStatus === "missing") {
           throw new Error(
             "Version " +
@@ -717,7 +720,8 @@
           "pending",
           "Uploading Version " +
             v +
-            " recording… Please keep this page open."
+            " recording… Please keep this page open.",
+          v === "A" ? 40 : 72
         );
         const videoResult = await postToUploadBridge({
           action: "uploadVideo",
@@ -730,6 +734,7 @@
           mime: info.recording.mimeType || "video/webm",
         });
         if (videoResult.video) videoResults.push(videoResult.video);
+        setUploadProgress(donePct);
       }
 
       state.driveUpload = {
@@ -749,11 +754,25 @@
     }
   }
 
-  function setSubmitUi(mode, message) {
+  function setUploadProgress(pct) {
+    const fill = $("upload-progress-fill");
+    const bar = $("upload-progress");
+    const label = $("upload-progress-label");
+    const p = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+    if (fill) fill.style.width = p + "%";
+    if (bar) {
+      bar.setAttribute("aria-valuenow", String(p));
+      show(bar);
+    }
+    if (label) label.textContent = p + "%";
+  }
+
+  function setSubmitUi(mode, message, progressPct) {
     const status = $("submit-status");
     const err = $("submit-error");
     const retry = $("btn-retry-upload");
     if (status) status.textContent = message;
+    if (typeof progressPct === "number") setUploadProgress(progressPct);
     if (mode === "error") {
       if (err) {
         err.textContent = message;
@@ -776,11 +795,13 @@
     go("step-submit", 9);
     setSubmitUi(
       "pending",
-      "Submitting your responses… Please keep this page open."
+      "Submitting your responses… Please keep this page open.",
+      5
     );
     const result = await uploadToDrive();
     state.uploading = false;
     if (result.ok) {
+      setUploadProgress(100);
       state.uploadComplete = true;
       go("step-done", 9);
       return;
