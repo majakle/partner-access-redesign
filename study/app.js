@@ -456,7 +456,7 @@
     try {
       recorder = new MediaRecorder(
         stream,
-        mime ? { mimeType: mime, videoBitsPerSecond: 800_000 } : undefined
+        mime ? { mimeType: mime, videoBitsPerSecond: 500_000 } : undefined
       );
     } catch (_) {
       recorder = new MediaRecorder(stream);
@@ -563,9 +563,43 @@
     );
   }
 
+  function maxVideoBytes() {
+    const cfg = window.STUDY_UPLOAD || {};
+    return cfg.maxVideoBytes || 28 * 1024 * 1024;
+  }
+
+  function recordingInfo(v) {
+    const blob = state.versions[v].recordingBlob;
+    const filename = fileBase() + "_Version" + v + "_recording.webm";
+    if (!blob || !blob.size) {
+      return {
+        recordingStatus: "missing",
+        recording: null,
+        blob: null,
+      };
+    }
+    const recording = {
+      mimeType: blob.type || "video/webm",
+      bytes: blob.size,
+      filename: filename,
+    };
+    if (blob.size > maxVideoBytes()) {
+      return {
+        recordingStatus: "too_large",
+        recording: recording,
+        blob: blob,
+      };
+    }
+    return {
+      recordingStatus: "ok",
+      recording: recording,
+      blob: blob,
+    };
+  }
+
   function versionPayload(v) {
     const ver = state.versions[v];
-    const blob = ver.recordingBlob;
+    const info = recordingInfo(v);
     return {
       completed: ver.completed,
       reachedConfirmationPage: !!ver.reachedConfirmationPage,
@@ -573,13 +607,8 @@
       taskTimeMs: ver.taskTimeMs,
       sus: { ...ver.sus },
       susScore: ver.susScore,
-      recording: blob
-        ? {
-            mimeType: blob.type,
-            bytes: blob.size,
-            filename: fileBase() + "_Version" + v + "_recording.webm",
-          }
-        : null,
+      recordingStatus: info.recordingStatus,
+      recording: info.recording,
     };
   }
 
@@ -604,20 +633,31 @@
     };
   }
 
-  async function encodeVideosForUpload(cfg) {
-    const max = cfg.maxVideoBytes || 28 * 1024 * 1024;
-    const videos = [];
-    for (const v of ["A", "B"]) {
-      const blob = state.versions[v].recordingBlob;
-      if (!blob || !blob.size) continue;
-      if (blob.size > max) continue;
-      videos.push({
-        version: v,
-        base64: await blobToBase64(blob),
-        mime: blob.type || "video/webm",
-      });
+  async function postToUploadBridge(payload) {
+    const cfg = window.STUDY_UPLOAD || {};
+    const res = await fetch(cfg.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+      redirect: "follow",
+    });
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (_) {
+      throw new Error("Unexpected response from upload service");
     }
-    return { videos: videos };
+    if (!data.ok) throw new Error(data.error || "Upload failed");
+    return data;
+  }
+
+  function makeUploadFileBase() {
+    return (
+      fileBase() +
+      "_" +
+      new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)
+    );
   }
 
   async function uploadToDrive() {
@@ -633,31 +673,77 @@
     }
 
     try {
+      const infoA = recordingInfo("A");
+      const infoB = recordingInfo("B");
+      const uploadBase = makeUploadFileBase();
+
+      // Always persist questionnaire JSON first (includes recordingStatus).
+      setSubmitUi(
+        "pending",
+        "Saving your questionnaire responses… Please keep this page open."
+      );
       const resultsJson = JSON.stringify(buildResults(), null, 2);
-      const { videos } = await encodeVideosForUpload(cfg);
-      const payload = {
+      const jsonResult = await postToUploadBridge({
+        action: "uploadResults",
         secret: cfg.secret,
         participantId: state.participantId,
         order: state.order,
+        fileBase: uploadBase,
         resultsJson: resultsJson,
-        videos: videos,
-      };
-      const res = await fetch(cfg.endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
-        redirect: "follow",
       });
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (_) {
-        throw new Error("Unexpected response from upload service");
+
+      const videoResults = [];
+      for (const [v, info] of [
+        ["A", infoA],
+        ["B", infoB],
+      ]) {
+        if (info.recordingStatus === "missing") {
+          throw new Error(
+            "Version " +
+              v +
+              " screen recording is missing. Please contact the researcher."
+          );
+        }
+        if (info.recordingStatus === "too_large") {
+          throw new Error(
+            "Version " +
+              v +
+              " recording is too large to upload (" +
+              Math.round(info.recording.bytes / (1024 * 1024)) +
+              " MB). Questionnaire responses were saved; please contact the researcher about the video."
+          );
+        }
+        setSubmitUi(
+          "pending",
+          "Uploading Version " +
+            v +
+            " recording… Please keep this page open."
+        );
+        const videoResult = await postToUploadBridge({
+          action: "uploadVideo",
+          secret: cfg.secret,
+          participantId: state.participantId,
+          order: state.order,
+          fileBase: uploadBase,
+          version: v,
+          base64: await blobToBase64(info.blob),
+          mime: info.recording.mimeType || "video/webm",
+        });
+        if (videoResult.video) videoResults.push(videoResult.video);
       }
-      if (!data.ok) throw new Error(data.error || "Upload failed");
-      state.driveUpload = data;
-      return { ok: true, data: data };
+
+      state.driveUpload = {
+        ok: true,
+        fileBase: uploadBase,
+        json: jsonResult.json || null,
+        videos: videoResults,
+        folderUrl: jsonResult.folderUrl || cfg.folderUrl || null,
+        recordingStatus: {
+          A: infoA.recordingStatus,
+          B: infoB.recordingStatus,
+        },
+      };
+      return { ok: true, data: state.driveUpload };
     } catch (err) {
       return { ok: false, error: err };
     }

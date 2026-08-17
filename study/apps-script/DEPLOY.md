@@ -21,8 +21,18 @@ endpoint: "https://script.google.com/macros/s/XXXX/exec",
 8. Confirm the folder is yours:  
    https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
 
-If you already deployed an older script, create a **new deployment version** after updating `Code.gs` so both multi-video upload and alternating AB/BA assignment (`nextOrder`) work.
+If you already deployed an older script, create a **new deployment version** after updating `Code.gs` so separate uploads (`uploadResults` / `uploadVideo`) and alternating AB/BA assignment (`nextOrder`) work.
+
+## Upload shape
+
+The study client sends **three requests** (not one combined payload):
+
+1. `action: "uploadResults"` → `{fileBase}_results.json`
+2. `action: "uploadVideo"` version A → `{fileBase}_VersionA_recording.webm`
+3. `action: "uploadVideo"` version B → `{fileBase}_VersionB_recording.webm`
+
+Each results JSON includes `versions.A.recordingStatus` / `versions.B.recordingStatus` (`ok`, `missing`, or `too_large`). Oversized recordings are **not** silently dropped.
 
 ## Test
 
-Open the study app → complete a short session → you should see new `_results.json` plus `_VersionA_recording.webm` and `_VersionB_recording.webm` in that folder. The thank-you screen should appear only after upload succeeds.
+Open the study app → complete a short session → you should see new `_results.json` plus `_VersionA_recording.webm` and `_VersionB_recording.webm` in that folder (same `fileBase` prefix). The thank-you screen should appear only after all three uploads succeed.

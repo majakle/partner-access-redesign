@@ -13,8 +13,12 @@
  * 7. Ensure this folder is in YOUR Google Drive (you own it):
  *    https://drive.google.com/drive/folders/1z114upASWme0DVJ-nbihWJu5nVRgOENk
  *
- * After setup, participants’ JSON + Version A/B videos go into that folder.
- * AB/BA order is assigned alternately via ?action=nextOrder
+ * Client uploads in separate requests (stays under Apps Script ~50MB limit):
+ *   action=uploadResults  → *_results.json
+ *   action=uploadVideo    → *_VersionA/B_recording.webm (one video per request)
+ * Legacy combined payloads are still accepted.
+ *
+ * AB/BA order is assigned alternately via action=nextOrder
  */
 
 var FOLDER_ID = "1z114upASWme0DVJ-nbihWJu5nVRgOENk";
@@ -26,6 +30,114 @@ function nextOrder_() {
   var order = n % 2 === 0 ? "AB" : "BA";
   props.setProperty("assignCount", String(n + 1));
   return { order: order, assignIndex: n + 1 };
+}
+
+function folder_() {
+  return DriveApp.getFolderById(FOLDER_ID);
+}
+
+function makeBase_(data) {
+  if (data.fileBase && String(data.fileBase).length) {
+    return String(data.fileBase).replace(/[^\w.\-]+/g, "_");
+  }
+  return (
+    (data.participantId || "Punknown") +
+    "_" +
+    (data.order || "XX") +
+    "_" +
+    Utilities.formatDate(
+      new Date(),
+      Session.getScriptTimeZone(),
+      "yyyy-MM-dd_HHmmss"
+    )
+  );
+}
+
+function saveResults_(data) {
+  var folder = folder_();
+  var base = makeBase_(data);
+  var jsonName = base + "_results.json";
+  var jsonBody =
+    typeof data.resultsJson === "string"
+      ? data.resultsJson
+      : JSON.stringify(data.results || data, null, 2);
+  var jsonFile = folder.createFile(
+    Utilities.newBlob(jsonBody, "application/json", jsonName)
+  );
+  return {
+    ok: true,
+    fileBase: base,
+    json: {
+      id: jsonFile.getId(),
+      name: jsonFile.getName(),
+      url: jsonFile.getUrl(),
+    },
+    folderUrl: "https://drive.google.com/drive/folders/" + FOLDER_ID,
+  };
+}
+
+function saveVideo_(data) {
+  if (!data.base64) {
+    return { ok: false, error: "Missing video data" };
+  }
+  var folder = folder_();
+  var base = makeBase_(data);
+  var mime = data.mime || "video/webm";
+  var ver = data.version || "X";
+  var videoName = base + "_Version" + ver + "_recording.webm";
+  var decoded = Utilities.base64Decode(data.base64);
+  var videoFile = folder.createFile(Utilities.newBlob(decoded, mime, videoName));
+  return {
+    ok: true,
+    fileBase: base,
+    video: {
+      version: ver,
+      id: videoFile.getId(),
+      name: videoFile.getName(),
+      url: videoFile.getUrl(),
+    },
+    folderUrl: "https://drive.google.com/drive/folders/" + FOLDER_ID,
+  };
+}
+
+function saveLegacyCombined_(data) {
+  var result = saveResults_(data);
+  var videosMeta = [];
+
+  if (data.videos && data.videos.length) {
+    for (var i = 0; i < data.videos.length; i++) {
+      var vid = data.videos[i];
+      if (!vid || !vid.base64) continue;
+      var one = saveVideo_({
+        fileBase: result.fileBase,
+        participantId: data.participantId,
+        order: data.order,
+        version: vid.version || String(i + 1),
+        base64: vid.base64,
+        mime: vid.mime || "video/webm",
+      });
+      if (one.ok && one.video) videosMeta.push(one.video);
+    }
+  } else if (data.videoBase64 && data.videoBase64.length > 0) {
+    var legacy = saveVideo_({
+      fileBase: result.fileBase,
+      participantId: data.participantId,
+      order: data.order,
+      version: "A",
+      base64: data.videoBase64,
+      mime: data.videoMime || "video/webm",
+    });
+    if (legacy.ok && legacy.video) videosMeta.push(legacy.video);
+  }
+
+  return {
+    ok: true,
+    fileBase: result.fileBase,
+    json: result.json,
+    videos: videosMeta,
+    video: videosMeta.length ? videosMeta[0] : null,
+    folderUrl: result.folderUrl,
+  };
 }
 
 function doPost(e) {
@@ -50,65 +162,16 @@ function doPost(e) {
       return json_({ ok: false, error: "Unauthorized" });
     }
 
-    var folder = DriveApp.getFolderById(FOLDER_ID);
-    var base =
-      (data.participantId || "Punknown") +
-      "_" +
-      (data.order || "XX") +
-      "_" +
-      Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd_HHmmss");
-
-    var jsonName = base + "_results.json";
-    var jsonBody =
-      typeof data.resultsJson === "string"
-        ? data.resultsJson
-        : JSON.stringify(data.results || data, null, 2);
-
-    var jsonFile = folder.createFile(
-      Utilities.newBlob(jsonBody, "application/json", jsonName)
-    );
-
-    var videosMeta = [];
-
-    if (data.videos && data.videos.length) {
-      for (var i = 0; i < data.videos.length; i++) {
-        var vid = data.videos[i];
-        if (!vid || !vid.base64) continue;
-        var mime = vid.mime || "video/webm";
-        var ver = vid.version || String(i + 1);
-        var videoName = base + "_Version" + ver + "_recording.webm";
-        var decoded = Utilities.base64Decode(vid.base64);
-        var videoFile = folder.createFile(
-          Utilities.newBlob(decoded, mime, videoName)
-        );
-        videosMeta.push({
-          version: ver,
-          id: videoFile.getId(),
-          name: videoFile.getName(),
-          url: videoFile.getUrl(),
-        });
-      }
-    } else if (data.videoBase64 && data.videoBase64.length > 0) {
-      var legacyMime = data.videoMime || "video/webm";
-      var legacyName = base + "_recording.webm";
-      var legacyDecoded = Utilities.base64Decode(data.videoBase64);
-      var legacyFile = folder.createFile(
-        Utilities.newBlob(legacyDecoded, legacyMime, legacyName)
-      );
-      videosMeta.push({
-        id: legacyFile.getId(),
-        name: legacyFile.getName(),
-        url: legacyFile.getUrl(),
-      });
+    if (data.action === "uploadResults") {
+      return json_(saveResults_(data));
     }
 
-    return json_({
-      ok: true,
-      json: { id: jsonFile.getId(), name: jsonFile.getName(), url: jsonFile.getUrl() },
-      videos: videosMeta,
-      video: videosMeta.length ? videosMeta[0] : null,
-      folderUrl: "https://drive.google.com/drive/folders/" + FOLDER_ID,
-    });
+    if (data.action === "uploadVideo") {
+      return json_(saveVideo_(data));
+    }
+
+    // Legacy: one request with JSON + both videos
+    return json_(saveLegacyCombined_(data));
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
@@ -132,6 +195,7 @@ function doGet(e) {
     ok: true,
     service: "AB/BA study Drive uploader",
     folderId: FOLDER_ID,
+    supports: ["nextOrder", "uploadResults", "uploadVideo", "legacy-combined"],
   });
 }
 
